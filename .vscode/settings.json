@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "*.glsl": "glsl",
+        "glfw3.h": "c",
+        "gl_context.h": "c",
+        "stb_image.h": "c",
+        "utilities.h": "c",
+        "default_libs.h": "c",
+        "cglm.h": "c"
+    }
+}
