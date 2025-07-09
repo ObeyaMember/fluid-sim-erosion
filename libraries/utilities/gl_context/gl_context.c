@@ -2,7 +2,7 @@
 
 
 static void error_callback(int error, const char* description)
-{
+{   
     fprintf(stderr, "Error: %s\n", description);
 }
 
@@ -22,7 +22,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 
 void setup_window(GLFWwindow** window, const unsigned int SCR_WIDTH, const unsigned int SCR_HEIGHT, const char* WIN_TITLE){
 
-
+   /*  if (true){
+        
+    } */
 
     glfwSetErrorCallback(error_callback);
 
@@ -32,7 +34,7 @@ void setup_window(GLFWwindow** window, const unsigned int SCR_WIDTH, const unsig
     
 
     if (!*window){
-        printf("%d", -1);  
+        printf("Loading window failed: %d", -1);  
         glfwTerminate();
     }
 
@@ -40,6 +42,7 @@ void setup_window(GLFWwindow** window, const unsigned int SCR_WIDTH, const unsig
     glfwMakeContextCurrent(*window);
     glfwSetFramebufferSizeCallback(*window, framebuffer_size_callback);
     gladLoadGL();
+    printf("Window is up and running!\n");
 
 }
 
@@ -54,4 +57,8 @@ void end_window(GLFWwindow** window){
 
 void end_process(){
     glfwTerminate();
+}
+
+void print_yes(){
+    printf("yes\n");
 }

@@ -158,16 +158,22 @@
 			"path" : "libraries/glad/CMakeLists.txt"
 		},
 		{
-			"path" : "libraries/utilities/shaders/CMakeLists.txt"
+			"path" : "libraries/stb_image/CMakeLists.txt"
 		},
 		{
-			"path" : "libraries/utilities/data/CMakeLists.txt"
+			"path" : "libraries/utilities/shaders/CMakeLists.txt"
 		},
 		{
 			"path" : "libraries/utilities/gl_context/CMakeLists.txt"
 		},
 		{
+			"path" : "libraries/utilities/data/CMakeLists.txt"
+		},
+		{
 			"path" : "libraries/utilities/CMakeLists.txt"
+		},
+		{
+			"path" : "scenes/default_scene/CMakeLists.txt"
 		}
 	],
 	"kind" : "cmakeFiles",

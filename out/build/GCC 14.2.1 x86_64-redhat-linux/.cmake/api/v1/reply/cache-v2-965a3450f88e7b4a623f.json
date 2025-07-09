@@ -959,7 +959,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "8"
+			"value" : "10"
 		},
 		{
 			"name" : "CMAKE_OBJCOPY",
@@ -1760,6 +1760,42 @@
 			],
 			"type" : "STATIC",
 			"value" : "/home/longbalven/Projects/C/TIPE_2.0/libraries/cglm"
+		},
+		{
+			"name" : "shaders_BINARY_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "/home/longbalven/Projects/C/TIPE_2.0/out/build/GCC 14.2.1 x86_64-redhat-linux/libraries/utilities/shaders"
+		},
+		{
+			"name" : "shaders_IS_TOP_LEVEL",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "OFF"
+		},
+		{
+			"name" : "shaders_SOURCE_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "/home/longbalven/Projects/C/TIPE_2.0/libraries/utilities/shaders"
 		}
 	],
 	"kind" : "cache",

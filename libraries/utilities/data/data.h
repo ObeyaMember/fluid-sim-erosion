@@ -4,6 +4,7 @@
 #include "../../default_libs/default_libs.h"
 #include "../../glad/glad.h"
 #include "../../cglm/include/cglm/cglm.h"
+/* #define STB_IMAGE_IMPLEMENTATION */
 #include "../../stb_image/stb_image.h"
 #include "../../GLFW/glfw3.h"
 

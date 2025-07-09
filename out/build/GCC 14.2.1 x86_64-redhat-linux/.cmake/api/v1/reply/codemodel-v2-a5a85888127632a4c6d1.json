@@ -14,7 +14,9 @@
 						4,
 						5,
 						6,
-						7
+						7,
+						8,
+						9
 					],
 					"hasInstallRule" : true,
 					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
@@ -68,8 +70,19 @@
 					"source" : "libraries/glad",
 					"targetIndexes" : 
 					[
-						4
+						5
 					]
+				},
+				{
+					"build" : "libraries/stb_image",
+					"jsonFile" : "directory-libraries.stb_image-Debug-d7db92b0ffc8df64f0dc.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "libraries/stb_image"
 				},
 				{
 					"build" : "libraries/utilities/shaders",
@@ -83,7 +96,22 @@
 					"source" : "libraries/utilities/shaders",
 					"targetIndexes" : 
 					[
-						5
+						6
+					]
+				},
+				{
+					"build" : "libraries/utilities/gl_context",
+					"jsonFile" : "directory-libraries.utilities.gl_context-Debug-057c510bf9e43d202a8f.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "libraries/utilities/gl_context",
+					"targetIndexes" : 
+					[
+						4
 					]
 				},
 				{
@@ -102,21 +130,6 @@
 					]
 				},
 				{
-					"build" : "libraries/utilities/gl_context",
-					"jsonFile" : "directory-libraries.utilities.gl_context-Debug-057c510bf9e43d202a8f.json",
-					"minimumCMakeVersion" : 
-					{
-						"string" : "3.10.0"
-					},
-					"parentIndex" : 0,
-					"projectIndex" : 0,
-					"source" : "libraries/utilities/gl_context",
-					"targetIndexes" : 
-					[
-						3
-					]
-				},
-				{
 					"build" : "libraries/utilities",
 					"jsonFile" : "directory-libraries.utilities-Debug-8493769bb701b00eca11.json",
 					"minimumCMakeVersion" : 
@@ -126,6 +139,21 @@
 					"parentIndex" : 0,
 					"projectIndex" : 0,
 					"source" : "libraries/utilities"
+				},
+				{
+					"build" : "scenes/default_scene",
+					"jsonFile" : "directory-scenes.default_scene-Debug-7d66c51223ba015933db.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "scenes/default_scene",
+					"targetIndexes" : 
+					[
+						3
+					]
 				}
 			],
 			"name" : "Debug",
@@ -144,7 +172,9 @@
 						4,
 						5,
 						6,
-						7
+						7,
+						8,
+						9
 					],
 					"name" : "TIPE_2.0",
 					"targetIndexes" : 
@@ -153,7 +183,8 @@
 						2,
 						3,
 						4,
-						5
+						5,
+						6
 					]
 				},
 				{
@@ -174,7 +205,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "TIPE_2.0::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-TIPE_2.0-Debug-5a58f04c6a143c09a257.json",
+					"jsonFile" : "target-TIPE_2.0-Debug-f1d7a16ae328c1e10b7d.json",
 					"name" : "TIPE_2.0",
 					"projectIndex" : 0
 				},
@@ -186,10 +217,17 @@
 					"projectIndex" : 1
 				},
 				{
-					"directoryIndex" : 5,
+					"directoryIndex" : 7,
 					"id" : "data::@e71c0a0880e63936a8f1",
 					"jsonFile" : "target-data-Debug-a60744d3001936ef9e34.json",
 					"name" : "data",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "default_scene::@e09fb4a6218f826cd723",
+					"jsonFile" : "target-default_scene-Debug-713b8a5d0a49c2a3de1e.json",
+					"name" : "default_scene",
 					"projectIndex" : 0
 				},
 				{
@@ -207,7 +245,7 @@
 					"projectIndex" : 0
 				},
 				{
-					"directoryIndex" : 4,
+					"directoryIndex" : 5,
 					"id" : "shaders::@2bb0f1ff78fe2c70ed77",
 					"jsonFile" : "target-shaders-Debug-a66d3976da520977df3a.json",
 					"name" : "shaders",

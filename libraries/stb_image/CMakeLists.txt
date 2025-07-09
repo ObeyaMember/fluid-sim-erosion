@@ -1,5 +1,5 @@
 add_library(stb_image INTERFACE)
-target_include_directories(stb_image PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(stb_image INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 enable_testing()
 

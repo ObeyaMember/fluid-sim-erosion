@@ -94,3 +94,11 @@ void fvc_shader_prog_link_error(unsigned int* program, const char* type){
         printf("\n");
     }
 }
+
+void print_yes_shaders(){
+    printf("yes shaders\n");
+}
+
+void print_lmao(){
+    printf("lmao\n");
+}
