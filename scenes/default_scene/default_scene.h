@@ -12,7 +12,7 @@
 #include "../../libraries/stb_image/stb_image.h" */
 #include "../../libraries/GLFW/glfw3.h"
 
-void default_scene_setup();
-void default_scene_main_loop();
+void default_scene_setup(GLFWwindow* window);
+void default_scene_main_loop(GLFWwindow* window);
 
 #endif

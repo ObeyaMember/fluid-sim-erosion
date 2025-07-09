@@ -52,7 +52,7 @@
 				"libraries/cglm/libcglm.so.0"
 			],
 			"targetId" : "cglm::@22b86bd15f4e9ec5f7b8",
-			"targetIndex" : 1,
+			"targetIndex" : 2,
 			"targetInstallNamelink" : "skip",
 			"type" : "target"
 		},
@@ -65,7 +65,7 @@
 				"libraries/cglm/libcglm.so"
 			],
 			"targetId" : "cglm::@22b86bd15f4e9ec5f7b8",
-			"targetIndex" : 1,
+			"targetIndex" : 2,
 			"targetInstallNamelink" : "only",
 			"type" : "target"
 		},
@@ -88,7 +88,7 @@
 			[
 				{
 					"id" : "cglm::@22b86bd15f4e9ec5f7b8",
-					"index" : 1
+					"index" : 2
 				}
 			],
 			"paths" : 

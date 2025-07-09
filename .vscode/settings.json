@@ -7,7 +7,8 @@
         "utilities.h": "c",
         "default_libs.h": "c",
         "cglm.h": "c",
-        "default_scene.h": "c"
+        "default_scene.h": "c",
+        "glad.h": "c"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

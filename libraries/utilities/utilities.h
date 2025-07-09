@@ -4,5 +4,6 @@
 #include "data/data.h"
 #include "shaders/shaders.h"
 #include "gl_context/gl_context.h"
+#include "camera/camera.h"
 
 #endif

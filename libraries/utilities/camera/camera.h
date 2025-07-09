@@ -7,8 +7,8 @@
 #include "../../stb_image/stb_image.h"
 #include "../../GLFW/glfw3.h"
 
-void camera_3d_direction_update(vec3 camera_dir, float camera_pitch, float camera_yaw);
-void camera_3d_move_update(vec3 camera_pos, float camera_move_speed, float delta_time);
-void camera_3d_zoom_update(float* camera_fov, float camera_zoom_speed);
+void camera_3d_direction_update(GLFWwindow* window, vec3 camera_dir, float camera_pitch, float camera_yaw);
+void camera_3d_move_update(GLFWwindow* window, vec3 camera_pos, vec3 camera_dir, float camera_move_speed, float delta_time);
+void camera_3d_zoom_update(GLFWwindow* window, float* camera_fov, float camera_zoom_speed);
 
 #endif

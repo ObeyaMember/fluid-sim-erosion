@@ -13,12 +13,15 @@ float camera_near = 0.01;
 float camera_far = 1000.0;
 float cam_pitch = 0.0;
 float cam_yaw = -90.0;
+float camera_move_speed = 1;
+float camera_look_speed = 1;
+float camera_zoom_speed = 1;
 vec3 camera_pos;
 vec3 camera_dir;
 
 
 //                                      ENGINE 
-float delta_time = 0.0;
+float delta_time = 1.0;
 float last_frame_time = 0.0;
 
 //                                      OBJECTS
@@ -57,7 +60,7 @@ unsigned int posVBO, texVBO, VAO, IBO;
 unsigned int plane_texture;
 
 
-void default_scene_setup(){
+void default_scene_setup(GLFWwindow* window){
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -115,7 +118,8 @@ void default_scene_setup(){
     vec3 a;
     glm_vec3_scale(z_axis, -1, a);
     glm_mat4_identity(view);
-    glm_translate(view, a);
+    glm_vec3_copy(a, camera_pos);
+    glm_translate(view, camera_pos);
 
     glm_perspective(glm_rad(camera_fov), camera_aspect, camera_near, camera_far, projection);
 
@@ -129,7 +133,12 @@ void default_scene_setup(){
 
 }
 
-void default_scene_main_loop(){
+void default_scene_main_loop(GLFWwindow* window){
+
+    // DELTA TIME
+    float new_frame_time = glfwGetTime();
+    delta_time = new_frame_time - last_frame_time;
+    last_frame_time = new_frame_time;
 
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.3f, 0.4f, 0.6f, 1.0f);
@@ -140,7 +149,12 @@ void default_scene_main_loop(){
     glUseProgram(main_shader_program);
 
     // UPDATE THE TRANSFORM MATRICES
-    glm_rotate(model, glm_rad(0.1), x_axis);
+    glm_rotate(model, glm_rad(0.3), x_axis);
+    glm_mat4_identity(view);
+    glm_translate(view, camera_pos);
+
+    camera_3d_move_update(window, camera_pos, camera_dir, camera_move_speed, delta_time);
+
 
     // PASSING THE TRANSFORM MATRICES
     int modelLoc = glGetUniformLocation(main_shader_program, "model");

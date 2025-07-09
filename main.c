@@ -20,17 +20,17 @@ int main(){
     //print_yes_shaders();
     //print_lmao();
 
-    GLFWwindow* beloved_window;
+    GLFWwindow* beloved_window = setup_window(500, 500, "Most  Loved  Window");
 
-    setup_window(&beloved_window, 500, 500, "Most  Loved  Window");
-    default_scene_setup();
+    
+    default_scene_setup(beloved_window);
     
     while (!glfwWindowShouldClose(beloved_window)){
 
-        default_scene_main_loop();
+        default_scene_main_loop(beloved_window);
 
-        while_loop_window(&beloved_window);
+        while_loop_window(beloved_window);
     }
-    end_window(&beloved_window);
+    end_window(beloved_window);
     end_process();
 }

@@ -10,9 +10,9 @@
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void setup_window(GLFWwindow** window, const unsigned int SCR_WIDTH, const unsigned int SCR_HEIGHT, const char* WIN_TITLE);
-void while_loop_window(GLFWwindow** window);
-void end_window(GLFWwindow** window);
+GLFWwindow* setup_window(const unsigned int SCR_WIDTH, const unsigned int SCR_HEIGHT, const char* WIN_TITLE);
+void while_loop_window(GLFWwindow* window);
+void end_window(GLFWwindow* window);
 void end_process();
 void print_yes();
 

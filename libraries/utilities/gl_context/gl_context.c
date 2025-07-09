@@ -20,7 +20,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
     glViewport(0,0,width,height);
 }
 
-void setup_window(GLFWwindow** window, const unsigned int SCR_WIDTH, const unsigned int SCR_HEIGHT, const char* WIN_TITLE){
+GLFWwindow* setup_window(const unsigned int SCR_WIDTH, const unsigned int SCR_HEIGHT, const char* WIN_TITLE){
 
    /*  if (true){
         
@@ -30,29 +30,30 @@ void setup_window(GLFWwindow** window, const unsigned int SCR_WIDTH, const unsig
 
     assert(glfwInit());
     
-    *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, WIN_TITLE, NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, WIN_TITLE, NULL, NULL);
     
 
-    if (!*window){
+    if (!window){
         printf("Loading window failed: %d", -1);  
         glfwTerminate();
     }
 
-    glfwSetKeyCallback(*window, key_callback);
-    glfwMakeContextCurrent(*window);
-    glfwSetFramebufferSizeCallback(*window, framebuffer_size_callback);
+    glfwSetKeyCallback(window, key_callback);
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     gladLoadGL();
     printf("Window is up and running!\n");
 
+    return window;
 }
 
-void while_loop_window(GLFWwindow** window){
-    glfwSwapBuffers(*window);
+void while_loop_window(GLFWwindow* window){
+    glfwSwapBuffers(window);
     glfwPollEvents();
 }
 
-void end_window(GLFWwindow** window){
-    glfwDestroyWindow(*window);
+void end_window(GLFWwindow* window){
+    glfwDestroyWindow(window);
 }
 
 void end_process(){
