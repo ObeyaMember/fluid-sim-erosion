@@ -17,7 +17,9 @@
 						7,
 						8,
 						9,
-						10
+						10,
+						11,
+						12
 					],
 					"hasInstallRule" : true,
 					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
@@ -97,7 +99,7 @@
 					"source" : "libraries/utilities/shaders",
 					"targetIndexes" : 
 					[
-						7
+						8
 					]
 				},
 				{
@@ -146,6 +148,36 @@
 					]
 				},
 				{
+					"build" : "libraries/utilities/primitives",
+					"jsonFile" : "directory-libraries.utilities.primitives-Debug-28f4122a423ae4fbce49.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "libraries/utilities/primitives",
+					"targetIndexes" : 
+					[
+						7
+					]
+				},
+				{
+					"build" : "libraries/utilities/transforms",
+					"jsonFile" : "directory-libraries.utilities.transforms-Debug-0621950ac5b1612b807f.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "libraries/utilities/transforms",
+					"targetIndexes" : 
+					[
+						9
+					]
+				},
+				{
 					"build" : "libraries/utilities",
 					"jsonFile" : "directory-libraries.utilities-Debug-8493769bb701b00eca11.json",
 					"minimumCMakeVersion" : 
@@ -191,7 +223,9 @@
 						7,
 						8,
 						9,
-						10
+						10,
+						11,
+						12
 					],
 					"name" : "TIPE_2.0",
 					"targetIndexes" : 
@@ -202,7 +236,9 @@
 						4,
 						5,
 						6,
-						7
+						7,
+						8,
+						9
 					]
 				},
 				{
@@ -223,7 +259,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "TIPE_2.0::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-TIPE_2.0-Debug-63331e4afb84217ecb60.json",
+					"jsonFile" : "target-TIPE_2.0-Debug-ffff0989dd49a84e556d.json",
 					"name" : "TIPE_2.0",
 					"projectIndex" : 0
 				},
@@ -249,7 +285,7 @@
 					"projectIndex" : 0
 				},
 				{
-					"directoryIndex" : 10,
+					"directoryIndex" : 12,
 					"id" : "default_scene::@e09fb4a6218f826cd723",
 					"jsonFile" : "target-default_scene-Debug-713b8a5d0a49c2a3de1e.json",
 					"name" : "default_scene",
@@ -270,10 +306,24 @@
 					"projectIndex" : 0
 				},
 				{
+					"directoryIndex" : 9,
+					"id" : "primitives::@2410396bcebcf657aa46",
+					"jsonFile" : "target-primitives-Debug-58fe73dadcd971b08ec3.json",
+					"name" : "primitives",
+					"projectIndex" : 0
+				},
+				{
 					"directoryIndex" : 5,
 					"id" : "shaders::@2bb0f1ff78fe2c70ed77",
 					"jsonFile" : "target-shaders-Debug-a66d3976da520977df3a.json",
 					"name" : "shaders",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "transforms::@a39fd07ca95f9cc53097",
+					"jsonFile" : "target-transforms-Debug-56ed0ed92de9c96b317a.json",
+					"name" : "transforms",
 					"projectIndex" : 0
 				}
 			]

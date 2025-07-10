@@ -27,6 +27,7 @@ float mouse_x = 400;
 float mouse_y = 400;
 
 //                                      OBJECTS
+//                                      PLANE
 int plane_num_ver = 4;
 float plane_vertices[] = {
     // positions      // texture coords
@@ -42,6 +43,11 @@ float plane_text_coords[] = {
     0.0, 0.0,
     0.0, 1.0
 };
+//                                      CUBE 1
+float* cube_1_vertices;
+unsigned int* cube_1_indices;
+float cube_1_side_size;
+int cube_1_n_vertices, cube_1_n_indices;
 
 
 int plane_num_indices = 6;
@@ -69,7 +75,6 @@ void default_scene_setup(GLFWwindow* window){
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // SHADERS
-    
     const char* vertex_shader_source = get_shader_content("./shaders/main_pipeline/default_scene/vertex_shader.glsl");
 
     const char* fragment_shader_source = get_shader_content("./shaders/main_pipeline/default_scene/fragment_shader.glsl");
@@ -82,11 +87,13 @@ void default_scene_setup(GLFWwindow* window){
     fvc_shader_comp_error(&fragment_shader, "fragment");
 
     // SHADER PROGRAMS
-    
     setup_fvc_shader_prog(&main_shader_program, &fragment_shader, &vertex_shader, NULL, "main_pipeline");
     fvc_shader_prog_link_error(&main_shader_program, "main_pipeline");
     
     // DATA
+    // OBJECTS
+    cube_1_vertices = get_cube(cube_1_indices, &cube_1_n_vertices, &cube_1_n_indices, cube_1_side_size);
+
     // TEXTURES
     
     setup_texture_from_png(&plane_texture, "./assets/textures/awesome_face.png", &main_shader_program, "texture1", 0);
@@ -191,7 +198,7 @@ void default_scene_main_loop(GLFWwindow* window){
 
     glBindVertexArray(VAO);
     glPointSize(5);
-    //glDrawArrays(GL_POINTS, 0, 5);
+    //glDrawArrays(GL_POINTS, 0, 4);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 }   

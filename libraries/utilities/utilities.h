@@ -5,5 +5,7 @@
 #include "shaders/shaders.h"
 #include "gl_context/gl_context.h"
 #include "camera/camera.h"
+#include "primitives/primitives.h"
+#include "transforms/transforms.h"
 
 #endif
