@@ -20,7 +20,7 @@ int main(){
     //print_yes_shaders();
     //print_lmao();
 
-    GLFWwindow* beloved_window = setup_window(500, 500, "Most  Loved  Window");
+    GLFWwindow* beloved_window = setup_window(800, 800, "Most  Loved  Window");
 
     
     default_scene_setup(beloved_window);

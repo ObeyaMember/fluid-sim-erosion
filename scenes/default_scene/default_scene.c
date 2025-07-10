@@ -11,10 +11,10 @@ float camera_fov = 100.0;
 float camera_aspect = 1;
 float camera_near = 0.01;
 float camera_far = 1000.0;
-float cam_pitch = 0.0;
-float cam_yaw = -90.0;
+float camera_pitch = 0.0;
+float camera_yaw = -90.0;
 float camera_move_speed = 1;
-float camera_look_speed = 1;
+float camera_look_speed = 20;
 float camera_zoom_speed = 1;
 vec3 camera_pos;
 vec3 camera_dir;
@@ -23,6 +23,8 @@ vec3 camera_dir;
 //                                      ENGINE 
 float delta_time = 1.0;
 float last_frame_time = 0.0;
+float mouse_x = 400;
+float mouse_y = 400;
 
 //                                      OBJECTS
 int plane_num_ver = 4;
@@ -64,6 +66,7 @@ void default_scene_setup(GLFWwindow* window){
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // SHADERS
     
@@ -111,12 +114,14 @@ void default_scene_setup(GLFWwindow* window){
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, plane_num_indices*sizeof(unsigned), plane_indices, GL_DYNAMIC_DRAW);
 
     // WORLD
+    vec3 a;
+    glm_vec3_scale(z_axis, -1, a);
     glm_mat4_identity(model);
+    glm_translate(model, a);
     glm_rotate(model, glm_rad(0), x_axis);
     glm_mat4_identity(view);
     
-    vec3 a;
-    glm_vec3_scale(z_axis, -1, a);
+    
     glm_mat4_identity(view);
     glm_vec3_copy(a, camera_pos);
     glm_translate(view, camera_pos);
@@ -150,10 +155,13 @@ void default_scene_main_loop(GLFWwindow* window){
 
     // UPDATE THE TRANSFORM MATRICES
     glm_rotate(model, glm_rad(0.3), x_axis);
-    glm_mat4_identity(view);
-    glm_translate(view, camera_pos);
-
-    camera_3d_move_update(window, camera_pos, camera_dir, camera_move_speed, delta_time);
+    
+    glm_mat4_identity(view); // RESET VIEW MATRIX AFTER EACH FRAME BEFORE UPDATING CAMERA
+    camera_3d_angles_update(window, camera_dir, camera_look_speed, &camera_pitch, &camera_yaw, &mouse_x, &mouse_y, delta_time);
+    //printf("pitch: %f, yaw: %f\n", camera_pitch, camera_yaw);
+    camera_3d_move_update(window, camera_pos, camera_dir, view, camera_move_speed, delta_time);
+    camera_3d_direction_update(window, camera_pos, camera_dir, view, camera_pitch, camera_yaw);
+    
 
 
     // PASSING THE TRANSFORM MATRICES
