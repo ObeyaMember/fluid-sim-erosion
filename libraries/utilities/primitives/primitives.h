@@ -8,19 +8,9 @@
 #include "../../stb_image/stb_image.h" */
 #include "../../GLFW/glfw3.h"
 
-float cube_vertices[24] = {
-1,1,1,   1,1,-1,   1,-1,-1,   1,-1,1,
--1,1,1,  -1,1,-1,  -1,-1,-1,  -1,-1,1  
-};
+extern float cube_vertices[24];
 
-unsigned int cube_indices[36] = {
-    0,1,3, 1,2,3,
-    4,0,7, 0,3,7,
-    5,4,6, 4,7,6,
-    1,5,2, 5,6,2,
-    2,3,6, 3,7,6,
-    1,0,5, 0,4,5
-};
+extern unsigned int cube_indices[36];
 
 float* get_cube(unsigned int* indices, int* n_vertices, int* n_indices, float side_size);
 void free_cube(float* vertices, float* indices);
