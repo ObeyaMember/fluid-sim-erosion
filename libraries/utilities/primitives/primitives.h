@@ -8,11 +8,22 @@
 #include "../../stb_image/stb_image.h" */
 #include "../../GLFW/glfw3.h"
 
-extern float cube_vertices[24];
+extern float prim_plane_vertices[12];
+extern unsigned int prim_plane_indices[6];
+extern float prim_plane_tex_coords[8];
 
-extern unsigned int cube_indices[36];
+float* get_prim_plane(unsigned int* indices, int* n_vertices, int* n_indices, float side_size);
+void get_prim_plane_w_tex_coords(float* vertices, unsigned int* indices, float* tex_coords, int* n_vertices, int* n_indices, float side_size);
+void free_prim_plane(float* vertices, unsigned int* indices);
+void free_prim_plane_w_tex_coords(float* vertices, unsigned int* indices, float* tex_coords);
 
-float* get_cube(unsigned int* indices, int* n_vertices, int* n_indices, float side_size);
-void free_cube(float* vertices, float* indices);
+extern float prim_cube_vertices[24];
+extern unsigned int prim_cube_indices[36];
+extern float prim_cube_tex_coords[16];
+
+float* get_prim_cube(unsigned int* indices, int* n_vertices, int* n_indices, float side_size);
+void get_prim_cube_w_tex_coords(float* vertices, unsigned int* indices, float* tex_coords, int* n_vertices, int* n_indices, float side_size);
+void free_prim_cube(float* vertices, unsigned int* indices);
+void free_prim_cube_w_tex_coords(float* vertices, unsigned int* indices, float* tex_coords);
 
 #endif

@@ -19,7 +19,7 @@ void camera_3d_angles_update(GLFWwindow* window, vec3 camera_dir, float camera_l
     glfwGetCursorPos(window, &new_mouse_x, &new_mouse_y);
     
     x_offset = (new_mouse_x - *last_mouse_x); // WHY TF DO THESE RANDOMLY NEED TO BE MADE OPPOSITE
-    y_offset = -(new_mouse_y - *last_mouse_y);
+    y_offset = (new_mouse_y - *last_mouse_y);
 
     *last_mouse_x = new_mouse_x;
     *last_mouse_y = new_mouse_y;

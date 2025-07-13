@@ -37,24 +37,40 @@ float plane_vertices[] = {
     -0.5f, 0.5f, 0.0,// top left
 };
 
-float plane_text_coords[] = {
-    1.0, 1.0,
-    1.0, 0.0,
-    0.0, 0.0,
-    0.0, 1.0
-};
-//                                      CUBE 1
-float* cube_1_vertices;
-unsigned int* cube_1_indices;
-float cube_1_side_size;
-int cube_1_n_vertices, cube_1_n_indices;
-
+float* plane_ver;
+float* plane_tex_c;
 
 int plane_num_indices = 6;
 unsigned int plane_indices[] = { // note that we start from 0!
         0, 1, 3, // first triangle
         1, 2, 3 // second triangle
 };
+
+float plane_text_coords[] = {
+    1.0, 1.0,
+    1.0, 0.0,
+    0.0, 0.0,
+    0.0, 1.0
+};
+
+
+
+//                                      CUBE 1
+float* cube_1_vertices;
+float* cube_1_tex_coords; 
+unsigned int* cube_1_indices;
+float cube_1_side_size = 1;
+int cube_1_n_vertices;
+int cube_1_n_indices;
+
+//                                  CHANGING OBEJCT 
+float* chng_obj_vertices;
+float* chng_obj_tex_coords; 
+unsigned int* chng_obj_indices;
+float chng_obj_side_size = 1;
+int chng_obj_n_vertices;
+int chng_obj_n_indices;
+
 
 
 
@@ -92,33 +108,103 @@ void default_scene_setup(GLFWwindow* window){
     
     // DATA
     // OBJECTS
-    cube_1_vertices = get_cube(cube_1_indices, &cube_1_n_vertices, &cube_1_n_indices, cube_1_side_size);
-
+    // CUBE 1
+    //cube_1_vertices = get_prim_cube_w_tex_coords(cube_1_indices, cube_1_tex_coords, &cube_1_n_vertices, &cube_1_n_indices, cube_1_side_size);
+    
+    // CHANGING OBJECT
+    chng_obj_vertices = malloc(8*3*sizeof(float));
+    chng_obj_indices = malloc(36*sizeof(unsigned));
+    chng_obj_tex_coords= malloc(8*2*sizeof(float));
+    get_prim_cube_w_tex_coords(chng_obj_vertices, chng_obj_indices, chng_obj_tex_coords, &chng_obj_n_vertices, &chng_obj_n_indices, chng_obj_side_size);
+    printf("N VERTICES %d\n", chng_obj_n_vertices);
+    printf("N INDICES %d\n", chng_obj_n_indices);
+    
     // TEXTURES
     
     setup_texture_from_png(&plane_texture, "./assets/textures/awesome_face.png", &main_shader_program, "texture1", 0);
 
     // BUFFERS
-    glGenVertexArrays(1, &VAO);
+    // PLANE
+
+    plane_ver = malloc(plane_num_ver*3*sizeof(float));
+    for (int i = 0; i < 3 * plane_num_ver; i += 1){
+        plane_ver[i] = plane_vertices[i];
+    }
+
+    plane_tex_c = malloc(plane_num_ver*2*sizeof(float));
+    for (int i = 0; i < 2 * plane_num_ver; i += 1){
+        plane_tex_c[i] = plane_text_coords[i];
+    }
+
+   /*  glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
     
     glGenBuffers(1, &posVBO);
     glBindBuffer(GL_ARRAY_BUFFER, posVBO);
-    glBufferData(GL_ARRAY_BUFFER, plane_num_ver*3*sizeof(float), plane_vertices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, plane_num_ver*3*sizeof(float), plane_ver, GL_DYNAMIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     
     glGenBuffers(1, &texVBO);
     glBindBuffer(GL_ARRAY_BUFFER, texVBO);
-    glBufferData(GL_ARRAY_BUFFER, plane_num_ver*2*sizeof(float), plane_text_coords, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, plane_num_ver*2*sizeof(float), plane_tex_c, GL_DYNAMIC_DRAW);
 
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
 
     glGenBuffers(1, &IBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, plane_num_indices*sizeof(unsigned), plane_indices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, plane_num_indices*sizeof(unsigned), plane_indices, GL_DYNAMIC_DRAW); */
+
+    // CUBE1
+    /* glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+    
+    glGenBuffers(1, &posVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, posVBO);
+    glBufferData(GL_ARRAY_BUFFER, cube_1_n_vertices*3*sizeof(float), cube_1_vertices, GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    
+    glGenBuffers(1, &texVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, texVBO);
+    glBufferData(GL_ARRAY_BUFFER, cube_1_n_vertices*2*sizeof(float), cube_1_tex_coords, GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+
+    glGenBuffers(1, &IBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, cube_1_n_indices*sizeof(unsigned), cube_1_indices, GL_DYNAMIC_DRAW); */
+
+    for (int i = 0; i < chng_obj_n_vertices*3; i += 1){
+        printf("%f\n", chng_obj_vertices[i]);
+    }
+
+    // CHANGING OBJECT
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+    
+    glGenBuffers(1, &posVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, posVBO);
+    glBufferData(GL_ARRAY_BUFFER, chng_obj_n_vertices*3*sizeof(float), chng_obj_vertices, GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    
+    glGenBuffers(1, &texVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, texVBO);
+    glBufferData(GL_ARRAY_BUFFER, chng_obj_n_vertices*2*sizeof(float), chng_obj_tex_coords, GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+
+    glGenBuffers(1, &IBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, chng_obj_n_indices*sizeof(unsigned), chng_obj_indices, GL_DYNAMIC_DRAW);
+
 
     // WORLD
     vec3 a;
@@ -180,15 +266,37 @@ void default_scene_main_loop(GLFWwindow* window){
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projection[0]);
 
     // UPDATE BUFFERS
-
-    glBindBuffer(GL_ARRAY_BUFFER, posVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(plane_vertices), plane_vertices, GL_DYNAMIC_DRAW);
+    // PLANE
+    /* glBindBuffer(GL_ARRAY_BUFFER, posVBO);
+    glBufferData(GL_ARRAY_BUFFER, plane_num_ver*3*sizeof(float), plane_ver, GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, texVBO);
-    glBufferData(GL_ARRAY_BUFFER, plane_num_ver*2*sizeof(float), plane_text_coords, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, plane_num_ver*2*sizeof(float), plane_tex_c, GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, plane_num_indices*sizeof(unsigned), plane_indices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, plane_num_indices*sizeof(unsigned), plane_indices, GL_DYNAMIC_DRAW); */
+
+    // CUBE
+    /* glBindBuffer(GL_ARRAY_BUFFER, posVBO);
+    glBufferData(GL_ARRAY_BUFFER, cube_1_n_vertices*3*sizeof(float), cube_1_vertices, GL_DYNAMIC_DRAW);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, texVBO);
+    glBufferData(GL_ARRAY_BUFFER, cube_1_n_vertices*2*sizeof(float), cube_1_tex_coords, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, cube_1_n_indices*sizeof(unsigned), cube_1_indices, GL_DYNAMIC_DRAW); */
+
+    // CHANGING OBJECT
+
+    glBindBuffer(GL_ARRAY_BUFFER, posVBO);
+    glBufferData(GL_ARRAY_BUFFER, chng_obj_n_vertices*3*sizeof(float), chng_obj_vertices, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, texVBO);
+    glBufferData(GL_ARRAY_BUFFER, chng_obj_n_vertices*2*sizeof(float), chng_obj_tex_coords, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, chng_obj_n_indices*sizeof(unsigned), chng_obj_indices, GL_DYNAMIC_DRAW);
+
 
     // PASSING THE TEXTURES
     glActiveTexture(GL_TEXTURE0);
@@ -197,8 +305,17 @@ void default_scene_main_loop(GLFWwindow* window){
     glUniform1i(glGetUniformLocation(main_shader_program, "texture1"), 0);
 
     glBindVertexArray(VAO);
+    
+    
     glPointSize(5);
-    //glDrawArrays(GL_POINTS, 0, 4);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    //glDrawArrays(GL_POINTS, 0, 8);
+    
+    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    glDrawElements(GL_TRIANGLES, chng_obj_n_indices, GL_UNSIGNED_INT, 0);
 
-}   
+}
+
+void default_scene_end(GLFWwindow* window){
+    free_prim_cube_w_tex_coords(cube_1_vertices, cube_1_indices, cube_1_tex_coords);
+    free_prim_plane_w_tex_coords(chng_obj_vertices, chng_obj_indices, chng_obj_tex_coords);
+}

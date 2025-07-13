@@ -31,6 +31,9 @@ int main(){
 
         while_loop_window(beloved_window);
     }
+
+    default_scene_end(beloved_window);
+
     end_window(beloved_window);
     end_process();
 }

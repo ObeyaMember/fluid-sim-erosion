@@ -14,5 +14,6 @@
 
 void default_scene_setup(GLFWwindow* window);
 void default_scene_main_loop(GLFWwindow* window);
+void default_scene_end(GLFWwindow* window);
 
 #endif
