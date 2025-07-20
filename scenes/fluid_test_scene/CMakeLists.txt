@@ -1,0 +1,2 @@
+add_library(fluid_test_scene fluid_test_scene.c)
+target_include_directories(fluid_test_scene PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

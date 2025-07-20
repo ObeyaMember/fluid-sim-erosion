@@ -35,6 +35,15 @@ float chng_obj_side_size = 1;
 int chng_obj_n_vertices;
 int chng_obj_n_indices;
 
+//                                  SHADERS AND SHADER PROGRAMS
+unsigned int vertex_shader, fragment_shader;
+unsigned int main_shader_program;
+
+//                                      BUFFERS / TEXTURES
+
+unsigned int posVBO, texVBO, instPosVBO, VAO, IBO;
+unsigned int plane_texture;
+
 //                                      INSTANCING
 int num_instances = 5;
 float inst_pos[] = {
@@ -45,15 +54,6 @@ float inst_pos[] = {
     0.0, 3.0, 3.0,
 };
 
-
-//                                  SHADERS AND SHADER PROGRAMS
-unsigned int vertex_shader, fragment_shader;
-unsigned int main_shader_program;
-
-//                                      BUFFERS / TEXTURES
-
-unsigned int posVBO, texVBO, instPosVBO, VAO, IBO;
-unsigned int plane_texture;
 
 
 void default_scene_setup(GLFWwindow* window){
@@ -87,7 +87,9 @@ void default_scene_setup(GLFWwindow* window){
     chng_obj_vertices = malloc(8*3*sizeof(float));
     chng_obj_indices = malloc(36*sizeof(unsigned));
     chng_obj_tex_coords= malloc(8*2*sizeof(float));
-    get_prim_cube_w_tex_coords(chng_obj_vertices, chng_obj_indices, chng_obj_tex_coords, &chng_obj_n_vertices, &chng_obj_n_indices, chng_obj_side_size);
+    chng_obj_n_vertices = get_prim_cube_n_vertices();
+    chng_obj_n_indices = get_prim_cube_n_indices();
+    get_prim_cube_w_tex_coords(chng_obj_vertices, chng_obj_indices, chng_obj_tex_coords, chng_obj_side_size);
 
     // INSTANCING
 
@@ -139,8 +141,6 @@ void default_scene_setup(GLFWwindow* window){
     glm_mat4_identity(model);
     glm_translate(model, a);
     glm_rotate(model, glm_rad(0), x_axis);
-    glm_mat4_identity(view);
-    
     
     glm_mat4_identity(view);
     glm_vec3_copy(a, camera_pos);

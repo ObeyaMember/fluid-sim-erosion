@@ -8,11 +8,14 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 # Libraries
+# Third-party
 add_subdirectory(./libraries/default_libs)
 add_subdirectory(./libraries/cglm/ EXCLUDE_FROM_ALL)
 add_subdirectory(./libraries/glad/)
 #add_subdirectory(./libraries/GLFW)
 add_subdirectory(./libraries/stb_image)
+
+# Personal
 add_subdirectory(./libraries/utilities/shaders/)
 add_subdirectory(./libraries/utilities/gl_context)
 add_subdirectory(./libraries/utilities/data)
@@ -20,9 +23,11 @@ add_subdirectory(./libraries/utilities/camera)
 add_subdirectory(./libraries/utilities/primitives)
 add_subdirectory(./libraries/utilities/transforms)
 add_subdirectory(./libraries/utilities/)
+add_subdirectory(./libraries/fluid_simulation)
 
 # Scenes
 add_subdirectory(./scenes/default_scene/)
+add_subdirectory(./scenes/fluid_test_scene/)
 
 set(SourceFiles "./main.c")
 list(APPEND SourceFiles "./libraries/glad/glad.c")
@@ -32,11 +37,14 @@ list(APPEND SourceFiles "./libraries/utilities/gl_context/gl_context.c")
 list(APPEND SourceFiles "./libraries/utilities/camera/camera.c")
 list(APPEND SourceFiles "./libraries/utilities/primitives/primitives.c")
 list(APPEND SourceFiles "./libraries/utilities/transforms/transforms.c")
-list(APPEND SourceFiles "./libraries/utilities/data/data.c")
+list(APPEND SourceFiles "./libraries/fluid_simulation/fluid_simulation.c")
+
+# the scene aren't required in the add_executable command because they're used directly in main file and compiler do that good
+# the others od cuz used in other libraries such as in scenes and not in main directly and compiler do that bad cuz unit or some
 
 add_executable(${CMAKE_PROJECT_NAME} ${SourceFiles})
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME "TIPE.exe")
-#hmmmmmmmmmmmmmmmmmmmmmmmmmm - why does glad, in particular, require this#include "camera/camera.h"
+
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC m)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC cglm)
@@ -51,6 +59,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC camera)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC primitives)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC transforms)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC utilities)
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC fluid_simulation)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC default_scene)
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC fluid_test_scene)
 

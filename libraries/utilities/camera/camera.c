@@ -89,7 +89,7 @@ void camera_3d_move_update(GLFWwindow* window, vec3 camera_pos, vec3 camera_dir,
 }
 
 void camera_3d_zoom_update(GLFWwindow* window, float* camera_fov, float camera_zoom_speed){
-
+    
 }
 
 
