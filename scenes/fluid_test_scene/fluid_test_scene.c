@@ -18,7 +18,7 @@ float camera_move_speed = 10;
 float camera_look_speed = 20;
 float camera_zoom_speed = 1;
 vec3 camera_pos = {0, 0, -30};
-vec3 camera_dir = {0, 0, 0};
+vec3 camera_dir = {0, 1, 0};
 
 
 //                                          ENGINE 
@@ -54,18 +54,27 @@ unsigned int* fluid_particle_indices;
 int fluid_particle_n_indices;
 
 float fluid_particle_render_radius = 1;
-float fluid_particle_mass = 0.1;
+float fluid_particle_mass = 1;
+float fluid_particle_radius = 2;
 
 // ALL PARTICLES
-const int n_fluid_particles = 100;
-vec3 fluid_particle_positions[100];
+
+const  int n_fluid_particles = 100;
+vec3  fluid_particle_positions[100];
 vec3 fluid_particle_velocities[100];
+float fluid_particle_densities[100];
+float fluid_particle_pressures[100];
+float grav_scale = 10.0;
+float fluid_particles_stiffness_k = 0.1;
+float fluid_particles_stiffness_gamma = 7;
+float fluid_sim_reference_density = 0.5;
 
 //                                      SIMULATION BOUNDING
 vec3 bound_pos = {0,0,0};
-vec3 bound_dims = {20, 10, 20};
-vec3 low_bound;
-vec3 high_bound;
+vec3 bound_dims = {30, 20, 30};
+float fluid_sim_out_of_bounds_stiffness = 500;
+float fluid_sim_out_of_bounds_bounce_damp = 0.05;
+
 
 float* fluid_sim_bounding_vertices;
 int fluid_sim_bounding_n_vertices;
@@ -75,7 +84,11 @@ int fluid_sim_bounding_n_indices;
 
 //                                      SPAWNING PARTICLES BOX
 vec3 spawn_box_pos = {0,0,0};
-vec3 spawn_box_dims = {10,10,10};
+vec3 spawn_box_dims = {20,10,20};
+
+fluid_sim_parameters fluid_sim_params;
+
+
 
 //                                        SCENE FUNCTIONS
 //                                             SETUP
@@ -152,7 +165,42 @@ static void setup_buffers(){
 }
 
 static void setup_data(){
+
+    //                                  INTITALIZE FLUID SIM PARAMS
     
+    // BOUNDARIES
+    glm_vec3_copy(bound_pos, fluid_sim_params.bound_pos);
+    glm_vec3_copy(bound_dims, fluid_sim_params.bound_dims);
+    fluid_sim_params.out_of_bounds_stiffness = fluid_sim_out_of_bounds_stiffness;
+    fluid_sim_params.out_of_bounds_bounce_damp = fluid_sim_out_of_bounds_bounce_damp; 
+    
+    // SPAWN BOX
+    glm_vec3_copy(spawn_box_pos, fluid_sim_params.spawn_box_pos);
+    glm_vec3_copy(spawn_box_dims, fluid_sim_params.spawn_box_dims);
+    
+    // PARTICLES PARAMETERS
+    fluid_sim_params.n_particles = n_fluid_particles;
+    fluid_sim_params.grav_scale = grav_scale;
+    fluid_sim_params.particle_mass = fluid_particle_mass;
+    fluid_sim_params.particle_radius = fluid_particle_radius;
+    fluid_sim_params.stiffness_k = fluid_particles_stiffness_k;
+    fluid_sim_params.stiffness_gamma = fluid_particles_stiffness_gamma;
+    fluid_sim_params.reference_density = fluid_sim_reference_density;
+    
+    // SIM STATE
+    fluid_sim_params.delta_time = 0;
+    fluid_sim_params.is_running = 0;
+    fluid_sim_params.positions = &fluid_particle_positions[0];
+    fluid_sim_params.velocities = &fluid_particle_velocities[0];
+    fluid_sim_params.densities = &fluid_particle_densities[0];
+    fluid_sim_params.pressures = &fluid_particle_pressures[0];
+    
+    // ---------
+    
+    // ALL PARTICLES
+    setup_particle_positions_in_box(&fluid_sim_params);
+    setup_particle_velocities(&fluid_sim_params);
+    setup_particle_densities(&fluid_sim_params);
 
     // ONE PARTICLE
     fluid_particle_n_vertices = get_prim_plane_n_vertices();
@@ -162,10 +210,6 @@ static void setup_data(){
     fluid_particle_indices = malloc(fluid_particle_n_indices * sizeof(unsigned int));
     get_prim_plane(fluid_particle_vertices, fluid_particle_indices, fluid_particle_render_radius);
 
-    // ALL PARTICLES
-    setup_particle_positions_in_box(&fluid_particle_positions[0], n_fluid_particles, spawn_box_pos, spawn_box_dims);
-    setup_particle_velocities(&fluid_particle_velocities[0], n_fluid_particles);
-
     // SIMULATION BOUNDINGS
     fluid_sim_bounding_n_vertices = get_prim_rectangle_n_vertices();
     fluid_sim_bounding_n_indices = get_prim_cube_n_indices();
@@ -173,6 +217,8 @@ static void setup_data(){
     fluid_sim_bounding_vertices = malloc(fluid_sim_bounding_n_vertices * 3 * sizeof(float));
     fluid_sim_bounding_indices = malloc(fluid_sim_bounding_n_indices * sizeof(unsigned int));
     get_prim_rectangle(fluid_sim_bounding_vertices, fluid_sim_bounding_indices, bound_dims[0], bound_dims[2], bound_dims[1]);
+
+    
 
 }
 
@@ -183,7 +229,11 @@ static void setup_camera_and_matrices(){
 
     // VIEW AND PROJECTION
     glm_mat4_identity(view);
+    vec3 target;
+    glm_vec3_add(camera_pos, camera_dir, target);
+    
     glm_translate(view, camera_pos);
+    glm_lookat(camera_pos, target, y_axis, view);
 
     glm_perspective(glm_rad(camera_fov), camera_aspect, camera_near, camera_far, projection);
 }
@@ -272,6 +322,7 @@ static void loop_draw_fluid_particles(){
     glBindBuffer(GL_ARRAY_BUFFER, fluid_particle_vertices_VBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fluid_particle_IBO);
     glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_pos_VBO);
+    
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     glDrawElementsInstanced(GL_TRIANGLES, fluid_particle_n_indices, GL_UNSIGNED_INT, 0, n_fluid_particles);
 }
@@ -300,7 +351,9 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // APPLY SIMULATION STEP
-    one_sim_step(&fluid_particle_positions[0], &fluid_particle_velocities[0], n_fluid_particles, bound_pos, bound_dims, delta_time);
+    fluid_sim_params.delta_time = delta_time;
+    pause_sim(window, &fluid_sim_params);
+    one_sim_step(&fluid_sim_params);
 
     
     loop_camera_and_matrices(window);
