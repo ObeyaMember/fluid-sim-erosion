@@ -14,7 +14,7 @@ struct fluid_sim_parameters_s {
     vec3 bound_pos;
     vec3 bound_dims;
     float out_of_bounds_stiffness;
-    float out_of_bounds_bounce_damp;
+    float out_of_bounds_bounce_damp; // between 0 and 1
     
     // SPAWN BOX
     vec3 spawn_box_pos;
@@ -28,6 +28,7 @@ struct fluid_sim_parameters_s {
     float reference_density;
     float stiffness_k;
     float stiffness_gamma;
+    float air_drag; // between 0 and 1
 
     // SIM STATE
     int is_running;

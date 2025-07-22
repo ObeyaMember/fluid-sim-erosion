@@ -17,7 +17,7 @@ float camera_yaw = 0.0;
 float camera_move_speed = 10;
 float camera_look_speed = 20;
 float camera_zoom_speed = 1;
-vec3 camera_pos = {0, 0, -30};
+vec3 camera_pos = {0, 0, -10};
 vec3 camera_dir = {0, 1, 0};
 
 
@@ -37,7 +37,7 @@ unsigned int bounding_shader_program;
 
 //                                      BUFFERS / TEXTURES
 
-unsigned int fluid_particle_vertices_VBO, fluid_particles_pos_VBO;
+unsigned int fluid_particle_vertices_VBO, fluid_particles_pos_VBO, fluid_particles_densities_VBO, fluid_particles_pressures_VBO;
 unsigned int VAO;
 unsigned int fluid_particle_IBO;
 
@@ -53,27 +53,29 @@ int fluid_particle_n_vertices;
 unsigned int* fluid_particle_indices;
 int fluid_particle_n_indices;
 
-float fluid_particle_render_radius = 1;
-float fluid_particle_mass = 1;
+float fluid_particle_render_radius = 0.2;
+float fluid_particle_mass = 0.5;
 float fluid_particle_radius = 2;
 
 // ALL PARTICLES
 
-const  int n_fluid_particles = 100;
-vec3  fluid_particle_positions[100];
-vec3 fluid_particle_velocities[100];
-float fluid_particle_densities[100];
-float fluid_particle_pressures[100];
+const  int n_fluid_particles = 400;
+vec3  fluid_particle_positions[400];
+vec3 fluid_particle_velocities[400];
+float fluid_particle_densities[400];
+float fluid_particle_pressures[400];
 float grav_scale = 10.0;
-float fluid_particles_stiffness_k = 0.1;
-float fluid_particles_stiffness_gamma = 7;
-float fluid_sim_reference_density = 0.5;
+float fluid_particles_stiffness_k = 5;
+float fluid_particles_stiffness_gamma = 3;
+float fluid_sim_reference_density = 0.1;
+float fluid_sim_air_drag = 0.01; // between 0 and 1
+float fluid_sim_out_of_bounds_bounce_damp = 0.02; // More like a wall friction coefficient - between 0 and 1
 
 //                                      SIMULATION BOUNDING
 vec3 bound_pos = {0,0,0};
-vec3 bound_dims = {30, 20, 30};
-float fluid_sim_out_of_bounds_stiffness = 500;
-float fluid_sim_out_of_bounds_bounce_damp = 0.05;
+vec3 bound_dims = {10,10,2};
+float fluid_sim_out_of_bounds_stiffness = 100;
+
 
 
 float* fluid_sim_bounding_vertices;
@@ -84,7 +86,7 @@ int fluid_sim_bounding_n_indices;
 
 //                                      SPAWNING PARTICLES BOX
 vec3 spawn_box_pos = {0,0,0};
-vec3 spawn_box_dims = {20,10,20};
+vec3 spawn_box_dims = {5,5,2};
 
 fluid_sim_parameters fluid_sim_params;
 
@@ -145,6 +147,24 @@ static void setup_buffers(){
     glEnableVertexAttribArray(1);
     glVertexAttribDivisor(1, 1);
 
+    // DENSITIES
+    glGenBuffers(1, &fluid_particles_densities_VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_densities_VBO);
+    glBufferData(GL_ARRAY_BUFFER, n_fluid_particles * sizeof(float), fluid_particle_densities , GL_DYNAMIC_DRAW);
+    
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(float), (void*)0);
+    glEnableVertexAttribArray(3);
+    glVertexAttribDivisor(3, 1);
+
+    // PRESSURES
+    glGenBuffers(1, &fluid_particles_pressures_VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_pressures_VBO);
+    glBufferData(GL_ARRAY_BUFFER, n_fluid_particles * sizeof(float), fluid_particle_densities , GL_DYNAMIC_DRAW);
+    
+    glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(float), (void*)0);
+    glEnableVertexAttribArray(4);
+    glVertexAttribDivisor(4, 1);
+
     // ONE FLUID PARTICLE IBO
     glGenBuffers(1, &fluid_particle_IBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fluid_particle_IBO);
@@ -186,7 +206,9 @@ static void setup_data(){
     fluid_sim_params.stiffness_k = fluid_particles_stiffness_k;
     fluid_sim_params.stiffness_gamma = fluid_particles_stiffness_gamma;
     fluid_sim_params.reference_density = fluid_sim_reference_density;
-    
+    fluid_sim_params.air_drag = fluid_sim_air_drag;
+
+
     // SIM STATE
     fluid_sim_params.delta_time = 0;
     fluid_sim_params.is_running = 0;
@@ -285,7 +307,7 @@ static void loop_draw_bounding(){
 
 //                                       FLUID PARTICLES
 static void loop_fluid_particles_buffers(){
-     // ONE FLUID PARTICLE
+    // ONE FLUID PARTICLE
     
     glBindBuffer(GL_ARRAY_BUFFER, fluid_particle_vertices_VBO);
     glBufferData(GL_ARRAY_BUFFER, fluid_particle_n_vertices*3*sizeof(float), fluid_particle_vertices, GL_DYNAMIC_DRAW);
@@ -294,6 +316,14 @@ static void loop_fluid_particles_buffers(){
     
     glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_pos_VBO);
     glBufferData(GL_ARRAY_BUFFER, n_fluid_particles * 3 * sizeof(float), fluid_particle_positions , GL_DYNAMIC_DRAW);
+
+    // DENSITIES
+    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_densities_VBO);
+    glBufferData(GL_ARRAY_BUFFER, n_fluid_particles * sizeof(float), fluid_particle_densities , GL_DYNAMIC_DRAW);
+
+    // PRESSURES
+    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_pressures_VBO);
+    glBufferData(GL_ARRAY_BUFFER, n_fluid_particles * sizeof(float), fluid_particle_densities , GL_DYNAMIC_DRAW);
 
     // ONE FLUID PARTICLE IBO
     
@@ -322,6 +352,9 @@ static void loop_draw_fluid_particles(){
     glBindBuffer(GL_ARRAY_BUFFER, fluid_particle_vertices_VBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fluid_particle_IBO);
     glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_pos_VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_densities_VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_pressures_VBO);
+    
     
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     glDrawElementsInstanced(GL_TRIANGLES, fluid_particle_n_indices, GL_UNSIGNED_INT, 0, n_fluid_particles);
