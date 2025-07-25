@@ -3,41 +3,13 @@
 static vec3 x_axis = {1,0,0};
 static vec3 y_axis = {0,1,0};
 static vec3 z_axis = {0,0,1};
-
-
-void setup_particle_positions_in_box(fluid_sim_parameters* sim_params){
-    vec3 spawn_box_pos;
-    vec3 spawn_box_dims;
-    glm_vec3_copy(sim_params->spawn_box_pos, spawn_box_pos);
-    glm_vec3_copy(sim_params->spawn_box_dims, spawn_box_dims);
-
-    float length = spawn_box_dims[0];
-    float height = spawn_box_dims[1];
-    float width = spawn_box_dims[2];
-
-    float MAX = RAND_MAX;
-    float x, y, z;
-    vec3 start_pos = {-length/2.0, -height/2.0, -width/2.0};
-
-    for (int i = 0; i < sim_params->n_particles; i += 1){
-        
-        x = (rand() / MAX) * length + spawn_box_pos[0];
-        y = (rand() / MAX) * height + spawn_box_pos[1];
-        z = (rand() / MAX) * width + spawn_box_pos[2];
-        
-        vec3 to_add_pos = {x, y, z};
-        glm_vec3_add(start_pos, to_add_pos, sim_params->positions[i]);
-        
-    }
-
-    
-
-
-}
+static vec3 neg_x_axis = {-1,0,0};
+static vec3 neg_y_axis = {0,-1,0};
+static vec3 neg_z_axis = {0,0,-1};
 
 void setup_particle_velocities(fluid_sim_parameters* sim_params){
     for (int i = 0; i < sim_params->n_particles; i += 1){
-        vec3 start_vel = {0,0,0};
+        vec3 start_vel = {-10,0,0};
         glm_vec3_copy(start_vel, sim_params->velocities[i]);
         
     }
@@ -64,13 +36,15 @@ static void get_air_drag_force(fluid_sim_parameters* sim_params, int particle_id
 }
 
 // APPLY BOUNCE FRICTION (NO CLUE IF THIS IS HOW IT WORKS)
-static void get_bounce_damp_force(fluid_sim_parameters* sim_params, int particle_idx, vec3 dest_force){
+static void get_bounce_damp_force(fluid_sim_parameters* sim_params, int particle_idx, vec3 wall_normal, vec3 dest_force){
     vec3 res_force;
     
     vec3 p_vel;
     glm_vec3_copy(sim_params->velocities[particle_idx], p_vel);
     
-    glm_vec3_scale(p_vel, -(sim_params->out_of_bounds_bounce_damp) * sim_params->particle_mass * (1 / sim_params->delta_time), res_force);
+    vec3 p_vel_normal_comp = {p_vel[0] * abs(wall_normal[0]), p_vel[1] * abs(wall_normal[1]), p_vel[2] * abs(wall_normal[2])};
+
+    glm_vec3_scale(p_vel_normal_comp, -(sim_params->out_of_bounds_bounce_damp) * sim_params->particle_mass * (1 / sim_params->delta_time), res_force);
 
     glm_vec3_copy(res_force, dest_force);
 }
@@ -103,7 +77,7 @@ static void get_out_of_bounds_force(fluid_sim_parameters* sim_params, int partic
 
         // DAMPENING
         vec3 bound_bounce_fric_force;
-        get_bounce_damp_force(sim_params, particle_idx, bound_bounce_fric_force);
+        get_bounce_damp_force(sim_params, particle_idx, neg_x_axis ,bound_bounce_fric_force);
         glm_vec3_add(res_force, bound_bounce_fric_force, res_force);
     }
     if (dist_to_left_bound > 0){
@@ -114,7 +88,7 @@ static void get_out_of_bounds_force(fluid_sim_parameters* sim_params, int partic
 
         // DAMPENING
         vec3 bound_bounce_fric_force;
-        get_bounce_damp_force(sim_params, particle_idx, bound_bounce_fric_force);
+        get_bounce_damp_force(sim_params, particle_idx, x_axis, bound_bounce_fric_force);
         glm_vec3_add(res_force, bound_bounce_fric_force, res_force);
     }
     
@@ -129,7 +103,7 @@ static void get_out_of_bounds_force(fluid_sim_parameters* sim_params, int partic
 
         // DAMPENING
         vec3 bound_bounce_fric_force;
-        get_bounce_damp_force(sim_params, particle_idx, bound_bounce_fric_force);
+        get_bounce_damp_force(sim_params, particle_idx, neg_y_axis, bound_bounce_fric_force);
         glm_vec3_add(res_force, bound_bounce_fric_force, res_force);
     }
     if (dist_to_down_bound > 0){
@@ -140,7 +114,7 @@ static void get_out_of_bounds_force(fluid_sim_parameters* sim_params, int partic
 
         // DAMPENING
         vec3 bound_bounce_fric_force;
-        get_bounce_damp_force(sim_params, particle_idx, bound_bounce_fric_force);
+        get_bounce_damp_force(sim_params, particle_idx, y_axis, bound_bounce_fric_force);
         glm_vec3_add(res_force, bound_bounce_fric_force, res_force);
 
     }
@@ -156,7 +130,7 @@ static void get_out_of_bounds_force(fluid_sim_parameters* sim_params, int partic
 
         // DAMPENING
         vec3 bound_bounce_fric_force;
-        get_bounce_damp_force(sim_params, particle_idx, bound_bounce_fric_force);
+        get_bounce_damp_force(sim_params, particle_idx, neg_z_axis, bound_bounce_fric_force);
         glm_vec3_add(res_force, bound_bounce_fric_force, res_force);
     }
     if (dist_to_front_bound > 0){
@@ -167,7 +141,7 @@ static void get_out_of_bounds_force(fluid_sim_parameters* sim_params, int partic
 
         // DAMPENING
         vec3 bound_bounce_fric_force;
-        get_bounce_damp_force(sim_params, particle_idx, bound_bounce_fric_force);
+        get_bounce_damp_force(sim_params, particle_idx, z_axis, bound_bounce_fric_force);
         glm_vec3_add(res_force, bound_bounce_fric_force, res_force);
 
         
@@ -190,7 +164,7 @@ void pause_sim(GLFWwindow* window, fluid_sim_parameters* sim_params){
 }
 
 float clamp_pairwise_dist(float dist){
-    return glm_clamp(dist, 0.01, 100000000);
+    return glm_clamp(dist, 0.001, 100000000);
 }
 
 static float smoothing_kernel_linear(fluid_sim_parameters* sim_params, float dist_to_center){
@@ -209,7 +183,8 @@ static float smoothing_kernel_linear_deriv(fluid_sim_parameters* sim_params, flo
 
 static float smoothing_kernel_cubic(fluid_sim_parameters* sim_params, float dist_to_center){
     float r = sim_params->particle_radius;
-    return glm_clamp(powf(r - dist_to_center, 3.0) / powf(r, 3.0), 0.0, 1.0);
+    float vol = 3.14 * powf(r, 6.0) / 15.0;
+    return glm_max(0, powf(r - dist_to_center, 3.0) / vol);
 }
 
 static float smoothing_kernel_cubic_deriv(fluid_sim_parameters* sim_params, float dist_to_center){
@@ -244,8 +219,9 @@ static void update_sim_densities(fluid_sim_parameters* sim_params){
             
         
         }
-
-            
+        
+        //printf("density[%d]: %f\n", particle_idx, sim_params->densities[particle_idx]);
+        
 
     }
 
@@ -254,8 +230,85 @@ static void update_sim_densities(fluid_sim_parameters* sim_params){
     
     //printf("density[0]: %f\n", sim_params->densities[0]);
     //printf("density[1]: %f\n", sim_params->densities[1]);
-    
+    //printf("density[556]: %f\n", sim_params->densities[556]);   
 }
+
+// ----------------------------
+
+static void setup_particle_positions_in_box_test(fluid_sim_parameters* sim_params){
+    vec3 spawn_box_pos;
+    vec3 spawn_box_dims;
+    glm_vec3_copy(sim_params->spawn_box_pos, spawn_box_pos);
+    glm_vec3_copy(sim_params->spawn_box_dims, spawn_box_dims);
+
+    float length = spawn_box_dims[0];
+    float height = spawn_box_dims[1];
+    float width = spawn_box_dims[2];
+
+    int n_x = 20;
+    int n_y = 20;
+    int n_z = 20;
+    float l_x = length / n_x;
+    float l_y = height / n_y;
+    float l_z = width / n_z;
+
+
+    float MAX = RAND_MAX;
+    float x, y, z;
+    vec3 start_pos = {-length/2.0, -height/2.0, -width/2.0};
+    int idx = 0;
+    for (int i = 0; i < n_x; i += 1){
+        
+        for (int j = 0; j < n_y; j += 1){
+
+            for (int k = 0; k < n_z; k += 1){
+                vec3 to_add = {i * l_x, j * l_y, k * l_z};
+                glm_vec3_add(start_pos, to_add, sim_params->positions[idx]);
+                idx += 1;
+
+                // TESTS
+                /* if (i == n_x / 2 && j == n_y / 2 && k == n_z / 2){
+                    printf("%d: \n", idx);
+                } */
+            }
+
+        }
+        
+    }
+}
+
+void setup_particle_positions_in_box(fluid_sim_parameters* sim_params){
+    vec3 spawn_box_pos;
+    vec3 spawn_box_dims;
+    glm_vec3_copy(sim_params->spawn_box_pos, spawn_box_pos);
+    glm_vec3_copy(sim_params->spawn_box_dims, spawn_box_dims);
+
+    float length = spawn_box_dims[0];
+    float height = spawn_box_dims[1];
+    float width = spawn_box_dims[2];
+
+    float MAX = RAND_MAX;
+    float x, y, z;
+    vec3 start_pos = {-length/2.0, -height/2.0, -width/2.0};
+
+    for (int i = 0; i < sim_params->n_particles; i += 1){
+        
+        x = (rand() / MAX) * length + spawn_box_pos[0];
+        y = (rand() / MAX) * height + spawn_box_pos[1];
+        z = (rand() / MAX) * width + spawn_box_pos[2];
+        
+        vec3 to_add_pos = {x, y, z};
+        glm_vec3_add(start_pos, to_add_pos, sim_params->positions[i]);
+        
+    }
+
+    /* setup_particle_positions_in_box_test(sim_params); */
+    update_sim_densities(sim_params);
+
+
+}
+
+// ----------------------------
 
 static void update_sim_pressure_at_particle(fluid_sim_parameters* sim_params, int particle_idx){
     
@@ -278,6 +331,8 @@ static void update_sim_pressure_at_particle_simple(fluid_sim_parameters* sim_par
     float pressure = density_error * k;
     sim_params->pressures[particle_idx] = pressure;
 
+    //printf("density[%d]: %f\n", particle_idx, sim_params->densities[particle_idx]);
+    //printf("pressure[%d]: %f\n", particle_idx, sim_params->pressures[particle_idx]);
 }
 
 static void get_pressure_force(fluid_sim_parameters* sim_params, int particle_idx, vec3 dest_force){
@@ -405,6 +460,7 @@ void one_sim_step(fluid_sim_parameters* sim_params){
             //get_pressure_force(sim_params, i, pressure_force);
             get_pressure_force_simple(sim_params, i, pressure_force);
             glm_vec3_add(total_force, pressure_force, total_force);
+            //printf("Pressure force mag[%d]: %f\n", i, glm_vec3_norm(pressure_force));
 
             // CALCULATE NEW ACCEL
             glm_vec3_scale(total_force, 1.0 / sim_params->particle_mass, accel);

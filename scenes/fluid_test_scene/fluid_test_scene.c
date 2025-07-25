@@ -15,9 +15,9 @@ float camera_far = 1000.0;
 float camera_pitch = 0.0;
 float camera_yaw = 0.0;
 float camera_move_speed = 10;
-float camera_look_speed = 20;
+float camera_look_speed = 10;
 float camera_zoom_speed = 1;
-vec3 camera_pos = {0, 0, -10};
+vec3 camera_pos = {0, 0, -30};
 vec3 camera_dir = {0, 1, 0};
 
 
@@ -53,28 +53,28 @@ int fluid_particle_n_vertices;
 unsigned int* fluid_particle_indices;
 int fluid_particle_n_indices;
 
-float fluid_particle_render_radius = 0.2;
-float fluid_particle_mass = 0.5;
-float fluid_particle_radius = 2;
+float fluid_particle_render_radius = 1;
+float fluid_particle_mass = 1;
+float fluid_particle_radius = 10;
 
 // ALL PARTICLES
 
-const  int n_fluid_particles = 400;
-vec3  fluid_particle_positions[400];
-vec3 fluid_particle_velocities[400];
-float fluid_particle_densities[400];
-float fluid_particle_pressures[400];
+const  int n_fluid_particles = 500;
+vec3  fluid_particle_positions[500];
+vec3 fluid_particle_velocities[500];
+float fluid_particle_densities[500];
+float fluid_particle_pressures[500];
 float grav_scale = 10.0;
-float fluid_particles_stiffness_k = 5;
+float fluid_particles_stiffness_k = 10;
 float fluid_particles_stiffness_gamma = 3;
-float fluid_sim_reference_density = 0.1;
+float fluid_sim_reference_density = 0.05;
 float fluid_sim_air_drag = 0.01; // between 0 and 1
-float fluid_sim_out_of_bounds_bounce_damp = 0.02; // More like a wall friction coefficient - between 0 and 1
+float fluid_sim_out_of_bounds_bounce_damp = 0.0; // More like a wall friction coefficient - between 0 and 1
 
 //                                      SIMULATION BOUNDING
 vec3 bound_pos = {0,0,0};
-vec3 bound_dims = {10,10,2};
-float fluid_sim_out_of_bounds_stiffness = 100;
+vec3 bound_dims = {40,50,10};
+float fluid_sim_out_of_bounds_stiffness = 500;
 
 
 
@@ -85,8 +85,8 @@ unsigned int* fluid_sim_bounding_indices;
 int fluid_sim_bounding_n_indices;
 
 //                                      SPAWNING PARTICLES BOX
-vec3 spawn_box_pos = {0,0,0};
-vec3 spawn_box_dims = {5,5,2};
+vec3 spawn_box_pos = {10,-10,0};
+vec3 spawn_box_dims = {20,30,5};
 
 fluid_sim_parameters fluid_sim_params;
 

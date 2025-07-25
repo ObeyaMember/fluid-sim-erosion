@@ -10,9 +10,15 @@ void main()
 {
 
 float to_show = ParticleDensity;
-float to_show_max = 0.2;
+float to_show_target = 0.05;
+float to_show_dev = to_show_target / 10.0;
+float to_show_max = to_show_target * 2.0;
+
 vec4 color = vec4(0,0,0,1);
-if (to_show <= to_show_max){
+if (to_show <= to_show_target + to_show_dev && to_show >= to_show_target - to_show_dev){
+    color = vec4(0.337, 0.878, 0.369, 1);
+}
+else if (to_show <= to_show_max){
     float to_show_ratio = to_show / to_show_max;
     color = vec4(to_show_ratio, to_show_ratio, to_show_ratio, 1);
 }else {
