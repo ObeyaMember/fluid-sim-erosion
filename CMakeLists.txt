@@ -22,7 +22,9 @@ add_subdirectory(./libraries/utilities/data)
 add_subdirectory(./libraries/utilities/camera)
 add_subdirectory(./libraries/utilities/primitives)
 add_subdirectory(./libraries/utilities/transforms)
+add_subdirectory(./libraries/utilities/general_purpose)
 add_subdirectory(./libraries/utilities/)
+
 add_subdirectory(./libraries/fluid_simulation)
 
 # Scenes
@@ -37,6 +39,7 @@ list(APPEND SourceFiles "./libraries/utilities/gl_context/gl_context.c")
 list(APPEND SourceFiles "./libraries/utilities/camera/camera.c")
 list(APPEND SourceFiles "./libraries/utilities/primitives/primitives.c")
 list(APPEND SourceFiles "./libraries/utilities/transforms/transforms.c")
+list(APPEND SourceFiles "./libraries/utilities/general_purpose/general_purpose.c")
 list(APPEND SourceFiles "./libraries/fluid_simulation/fluid_simulation.c")
 
 # the scene aren't required in the add_executable command because they're used directly in main file and compiler do that good
@@ -58,6 +61,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC gl_context)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC camera)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC primitives)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC transforms)
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC general_purpose)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC utilities)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC fluid_simulation)
 

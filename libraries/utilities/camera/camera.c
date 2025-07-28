@@ -25,7 +25,7 @@ void camera_3d_angles_update(GLFWwindow* window, vec3 camera_dir, float camera_l
     *last_mouse_y = new_mouse_y;
     
     *camera_yaw = *camera_yaw + (x_offset * camera_look_speed * delta_time);
-    *camera_pitch = *camera_pitch + (y_offset * camera_look_speed * delta_time);
+    *camera_pitch = glm_clamp(*camera_pitch + (y_offset * camera_look_speed * delta_time), 91, 269);
 }
 
 void camera_3d_direction_update(GLFWwindow* window, vec3 camera_pos, vec3 camera_dir, mat4 view, float camera_pitch, float camera_yaw){

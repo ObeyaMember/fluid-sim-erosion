@@ -15,6 +15,14 @@ struct fluid_sim_parameters_s {
     vec3 bound_dims;
     float out_of_bounds_stiffness;
     float out_of_bounds_bounce_damp; // between 0 and 1
+
+    // SPATIAL PARTITIONING
+    int n_grid_cells_x;
+    int n_grid_cells_y;
+    int n_grid_cells_z;
+    int* grid_cells_num_particles_prefix_sums; 
+    int* particle_cells; // holds cell idx of particle i at i
+    int* grid; // holds cell indices ordered by their cell indices
     
     // SPAWN BOX
     vec3 spawn_box_pos;
@@ -38,12 +46,14 @@ struct fluid_sim_parameters_s {
     vec3* velocities;
     float* densities;
     float* pressures;
+    
 };
 
 typedef struct fluid_sim_parameters_s fluid_sim_parameters; 
 
 void setup_particle_positions_in_box(fluid_sim_parameters* sim_params);
 void setup_particle_velocities(fluid_sim_parameters* sim_params);
+void setup_sim_grid(fluid_sim_parameters* sim_params);
 void setup_particle_densities(fluid_sim_parameters* sim_params);
 void pause_sim(GLFWwindow* window, fluid_sim_parameters* sim_params);
 void one_sim_step(fluid_sim_parameters* sim_params);

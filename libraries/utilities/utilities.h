@@ -7,5 +7,6 @@
 #include "camera/camera.h"
 #include "primitives/primitives.h"
 #include "transforms/transforms.h"
+#include "general_purpose/general_purpose.h"
 
 #endif

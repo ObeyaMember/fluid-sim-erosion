@@ -21,6 +21,15 @@ int main(){
     //print_yes_shaders();
     //print_lmao();
 
+
+    // random testing ---------
+
+    int array[10] = {300, 0,0,0,0,1,2,1,11,11};
+    radix_sort(array, 10);
+    print_int_array(array, 10);
+
+    // ----------
+
     GLFWwindow* beloved_window = setup_window(800, 800, "Most  Loved  Window");
 
     

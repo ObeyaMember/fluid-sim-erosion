@@ -53,17 +53,17 @@ int fluid_particle_n_vertices;
 unsigned int* fluid_particle_indices;
 int fluid_particle_n_indices;
 
-float fluid_particle_render_radius = 1;
+float fluid_particle_render_radius = 0.5;
 float fluid_particle_mass = 1;
-float fluid_particle_radius = 10;
+float fluid_particle_radius = 5;
 
 // ALL PARTICLES
-
-const  int n_fluid_particles = 500;
-vec3  fluid_particle_positions[500];
-vec3 fluid_particle_velocities[500];
-float fluid_particle_densities[500];
-float fluid_particle_pressures[500];
+#define N_FLUID_SIM_PARTICLES 400
+const int n_fluid_particles = N_FLUID_SIM_PARTICLES;
+vec3  fluid_particle_positions[N_FLUID_SIM_PARTICLES];
+vec3 fluid_particle_velocities[N_FLUID_SIM_PARTICLES];
+float fluid_particle_densities[N_FLUID_SIM_PARTICLES];
+float fluid_particle_pressures[N_FLUID_SIM_PARTICLES];
 float grav_scale = 10.0;
 float fluid_particles_stiffness_k = 10;
 float fluid_particles_stiffness_gamma = 3;
@@ -73,7 +73,7 @@ float fluid_sim_out_of_bounds_bounce_damp = 0.0; // More like a wall friction co
 
 //                                      SIMULATION BOUNDING
 vec3 bound_pos = {0,0,0};
-vec3 bound_dims = {40,50,10};
+vec3 bound_dims = {40,50,5};
 float fluid_sim_out_of_bounds_stiffness = 500;
 
 
@@ -84,9 +84,18 @@ int fluid_sim_bounding_n_vertices;
 unsigned int* fluid_sim_bounding_indices;
 int fluid_sim_bounding_n_indices;
 
+//                                      SPATIAL PARTITIONING GRID
+#define FLUID_SIM_N_GRID_CELLS_X 10
+#define FLUID_SIM_N_GRID_CELLS_Y 10
+#define FLUID_SIM_N_GRID_CELLS_Z 10
+int fluid_sim_n_grid_cells_x = FLUID_SIM_N_GRID_CELLS_X;
+int fluid_sim_n_grid_cells_y = FLUID_SIM_N_GRID_CELLS_Y;
+int fluid_sim_n_grid_cells_z = FLUID_SIM_N_GRID_CELLS_Z;
+int fluid_sim_grid[FLUID_SIM_N_GRID_CELLS_X][FLUID_SIM_N_GRID_CELLS_Y][FLUID_SIM_N_GRID_CELLS_Z];
+
 //                                      SPAWNING PARTICLES BOX
-vec3 spawn_box_pos = {10,-10,0};
-vec3 spawn_box_dims = {20,30,5};
+vec3 spawn_box_pos = {0,-22.5,0};
+vec3 spawn_box_dims = {40,5,5};
 
 fluid_sim_parameters fluid_sim_params;
 
@@ -194,6 +203,12 @@ static void setup_data(){
     fluid_sim_params.out_of_bounds_stiffness = fluid_sim_out_of_bounds_stiffness;
     fluid_sim_params.out_of_bounds_bounce_damp = fluid_sim_out_of_bounds_bounce_damp; 
     
+    // SPATIAL GRID
+    fluid_sim_params.n_grid_cells_x = fluid_sim_n_grid_cells_x;
+    fluid_sim_params.n_grid_cells_y = fluid_sim_n_grid_cells_y;
+    fluid_sim_params.n_grid_cells_z = fluid_sim_n_grid_cells_z;
+    fluid_sim_params.grid;
+
     // SPAWN BOX
     glm_vec3_copy(spawn_box_pos, fluid_sim_params.spawn_box_pos);
     glm_vec3_copy(spawn_box_dims, fluid_sim_params.spawn_box_dims);
@@ -225,12 +240,12 @@ static void setup_data(){
     setup_particle_densities(&fluid_sim_params);
 
     // ONE PARTICLE
-    fluid_particle_n_vertices = get_prim_plane_n_vertices();
-    fluid_particle_n_indices = get_prim_rectangle_n_indices();
+    fluid_particle_n_vertices = get_prim_cube_n_vertices();
+    fluid_particle_n_indices = get_prim_cube_n_indices();
 
     fluid_particle_vertices = malloc(fluid_particle_n_vertices * 3 * sizeof(float));
     fluid_particle_indices = malloc(fluid_particle_n_indices * sizeof(unsigned int));
-    get_prim_plane(fluid_particle_vertices, fluid_particle_indices, fluid_particle_render_radius);
+    get_prim_cube(fluid_particle_vertices, fluid_particle_indices, fluid_particle_render_radius);
 
     // SIMULATION BOUNDINGS
     fluid_sim_bounding_n_vertices = get_prim_rectangle_n_vertices();
