@@ -20,8 +20,9 @@ struct fluid_sim_parameters_s {
     int n_grid_cells_x;
     int n_grid_cells_y;
     int n_grid_cells_z;
+    int n_grid_cells_total;
+    int* grid_particle_cells; // holds cell idx of particle i at i
     int* grid_cells_num_particles_prefix_sums; 
-    int* particle_cells; // holds cell idx of particle i at i
     int* grid; // holds cell indices ordered by their cell indices
     
     // SPAWN BOX
@@ -51,11 +52,13 @@ struct fluid_sim_parameters_s {
 
 typedef struct fluid_sim_parameters_s fluid_sim_parameters; 
 
+void pause_sim(GLFWwindow* window, fluid_sim_parameters* sim_params);
+
 void setup_particle_positions_in_box(fluid_sim_parameters* sim_params);
 void setup_particle_velocities(fluid_sim_parameters* sim_params);
-void setup_sim_grid(fluid_sim_parameters* sim_params);
 void setup_particle_densities(fluid_sim_parameters* sim_params);
-void pause_sim(GLFWwindow* window, fluid_sim_parameters* sim_params);
+void setup_sim_grid(fluid_sim_parameters* sim_params);
+
 void one_sim_step(fluid_sim_parameters* sim_params);
 
 #endif

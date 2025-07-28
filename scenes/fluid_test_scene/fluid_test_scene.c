@@ -58,14 +58,14 @@ float fluid_particle_mass = 1;
 float fluid_particle_radius = 5;
 
 // ALL PARTICLES
-#define N_FLUID_SIM_PARTICLES 400
+#define N_FLUID_SIM_PARTICLES 2
 const int n_fluid_particles = N_FLUID_SIM_PARTICLES;
 vec3  fluid_particle_positions[N_FLUID_SIM_PARTICLES];
 vec3 fluid_particle_velocities[N_FLUID_SIM_PARTICLES];
 float fluid_particle_densities[N_FLUID_SIM_PARTICLES];
 float fluid_particle_pressures[N_FLUID_SIM_PARTICLES];
 float grav_scale = 10.0;
-float fluid_particles_stiffness_k = 10;
+float fluid_particles_stiffness_k = 200;
 float fluid_particles_stiffness_gamma = 3;
 float fluid_sim_reference_density = 0.05;
 float fluid_sim_air_drag = 0.01; // between 0 and 1
@@ -91,11 +91,14 @@ int fluid_sim_bounding_n_indices;
 int fluid_sim_n_grid_cells_x = FLUID_SIM_N_GRID_CELLS_X;
 int fluid_sim_n_grid_cells_y = FLUID_SIM_N_GRID_CELLS_Y;
 int fluid_sim_n_grid_cells_z = FLUID_SIM_N_GRID_CELLS_Z;
-int fluid_sim_grid[FLUID_SIM_N_GRID_CELLS_X][FLUID_SIM_N_GRID_CELLS_Y][FLUID_SIM_N_GRID_CELLS_Z];
+int fluid_sim_n_grid_cells_total = FLUID_SIM_N_GRID_CELLS_X * FLUID_SIM_N_GRID_CELLS_Y * FLUID_SIM_N_GRID_CELLS_Z;
+int fluid_sim_grid_particle_cells[N_FLUID_SIM_PARTICLES];
+int fluid_sim_grid_num_particles_prefix_sums[FLUID_SIM_N_GRID_CELLS_X * FLUID_SIM_N_GRID_CELLS_Y * FLUID_SIM_N_GRID_CELLS_Z];
+int fluid_sim_grid[N_FLUID_SIM_PARTICLES];
 
 //                                      SPAWNING PARTICLES BOX
-vec3 spawn_box_pos = {0,-22.5,0};
-vec3 spawn_box_dims = {40,5,5};
+vec3 spawn_box_pos = {0,-20,0};
+vec3 spawn_box_dims = {40,10,5};
 
 fluid_sim_parameters fluid_sim_params;
 
@@ -207,7 +210,10 @@ static void setup_data(){
     fluid_sim_params.n_grid_cells_x = fluid_sim_n_grid_cells_x;
     fluid_sim_params.n_grid_cells_y = fluid_sim_n_grid_cells_y;
     fluid_sim_params.n_grid_cells_z = fluid_sim_n_grid_cells_z;
-    fluid_sim_params.grid;
+    fluid_sim_params.n_grid_cells_total = fluid_sim_n_grid_cells_total;
+    fluid_sim_params.grid_particle_cells = &fluid_sim_grid_particle_cells[0];
+    fluid_sim_params.grid_cells_num_particles_prefix_sums = &fluid_sim_grid_num_particles_prefix_sums[0];
+    fluid_sim_params.grid = &fluid_sim_grid[0];
 
     // SPAWN BOX
     glm_vec3_copy(spawn_box_pos, fluid_sim_params.spawn_box_pos);
@@ -238,6 +244,7 @@ static void setup_data(){
     setup_particle_positions_in_box(&fluid_sim_params);
     setup_particle_velocities(&fluid_sim_params);
     setup_particle_densities(&fluid_sim_params);
+    setup_sim_grid(&fluid_sim_params);
 
     // ONE PARTICLE
     fluid_particle_n_vertices = get_prim_cube_n_vertices();

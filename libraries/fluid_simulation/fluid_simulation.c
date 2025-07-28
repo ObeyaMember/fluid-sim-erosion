@@ -8,7 +8,7 @@ static vec3 neg_y_axis = {0,-1,0};
 static vec3 neg_z_axis = {0,0,-1};
 
 //                                              HELPER FUNCTIONS
-float clamp_pairwise_dist(float dist){
+static float clamp_pairwise_dist(float dist){
     return glm_clamp(dist, 0.001, 100000000);
 }
 
@@ -22,15 +22,17 @@ void pause_sim(GLFWwindow* window, fluid_sim_parameters* sim_params){
     }
 }
 
-int particle_to_cell(fluid_sim_parameters* sim_params, int particle_idx){
+static int particle_to_cell(fluid_sim_parameters* sim_params, int particle_idx){
+    int n_grid_cells_x = sim_params->n_grid_cells_x;
+    int n_grid_cells_y = sim_params->n_grid_cells_y;
+    int n_grid_cells_z = sim_params->n_grid_cells_z;
+
     float grid_cell_length = sim_params->bound_dims[0] / (float) sim_params->n_grid_cells_x;
     float grid_cell_height = sim_params->bound_dims[1] / (float) sim_params->n_grid_cells_y;
     float grid_cell_width = sim_params->bound_dims[2] / (float) sim_params->n_grid_cells_z;
-
-    
-    int cell_x;// = (int) (pos[0] / grid_cell_length);
-    int cell_y;// = (int) (pos[1] / grid_cell_height);
-    int cell_z;// = (int) (pos[2] / grid_cell_width);
+    printf("grid_cell_length: %f\n", grid_cell_length);
+    printf("grid_cell_height: %f\n", grid_cell_height);
+    printf("grid_cell_width: %f\n", grid_cell_width);
 
     vec3 p_pos;
     glm_vec3_copy(sim_params->positions[particle_idx], p_pos);
@@ -40,76 +42,53 @@ int particle_to_cell(fluid_sim_parameters* sim_params, int particle_idx){
     
     vec3 bound_dims;
     glm_vec3_copy(sim_params->bound_dims, bound_dims);
-    
+
+    vec3 bound_dims_halved;
+    glm_vec3_scale(bound_dims, 0.5, bound_dims_halved);
+
+    vec3 first_corner_pos;
+    glm_vec3_sub(bound_pos, bound_dims_halved, first_corner_pos);
+
+    int cell_x = (int) ((p_pos[0] - (first_corner_pos[0])) / grid_cell_length);
+    int cell_y = (int) ((p_pos[1] - (first_corner_pos[1])) / grid_cell_height);
+    int cell_z = (int) ((p_pos[2] - (first_corner_pos[2])) / grid_cell_width);
+
+    // ----- x
     float dist_to_right_bound = p_pos[0] - (bound_pos[0] + bound_dims[0]/2.0);
     float dist_to_left_bound = (bound_pos[0] - bound_dims[0]/2.0) - p_pos[0];
 
-    if (dist_to_right_bound > 0){
-        
-        
+    if (dist_to_right_bound >= 0){
+        cell_x = n_grid_cells_x-1;
     }
-    if (dist_to_left_bound > 0){
-        
-        
+    if (dist_to_left_bound >= 0){
+        cell_x = 0;
     }
-    
+
+    // ----- y
     float dist_to_up_bound = p_pos[1] - (bound_pos[1] + bound_dims[1]/2.0);
     float dist_to_down_bound = (bound_pos[1] - bound_dims[1]/2.0) - p_pos[1];
     
-    if (dist_to_up_bound > 0){
-        
-        
+    if (dist_to_up_bound >= 0){
+        cell_y = n_grid_cells_y-1;
     }
-    if (dist_to_down_bound > 0){
-        
-       
-
+    if (dist_to_down_bound >= 0){
+        cell_y = 0;
     }
 
+    // ----- z
     float dist_to_back_bound = p_pos[2] - (bound_pos[2] + bound_dims[2]/2.0);
     float dist_to_front_bound = (bound_pos[2] - bound_dims[2]/2.0) - p_pos[2];
 
-    if (dist_to_back_bound > 0){
-        
-        
+    if (dist_to_back_bound >= 0){
+        cell_z = n_grid_cells_z;
     }
-    if (dist_to_front_bound > 0){
-        
-       
-
-        
+    if (dist_to_front_bound >= 0){
+        cell_z = 0;
     }
 
-
-    //int cell_idx = p_pos[0] + pos[0]*pos[1] + pos[0]*pos[1]*pos[2];
-}
-//                                      SETUP FUNCTIONS - EXCEPT DENSITIES
-void setup_particle_velocities(fluid_sim_parameters* sim_params){
-    for (int i = 0; i < sim_params->n_particles; i += 1){
-        vec3 start_vel = {-20,0,0};
-        glm_vec3_copy(start_vel, sim_params->velocities[i]);
-        
-    }
-}
-
-void setup_particle_densities(fluid_sim_parameters* sim_params){
-    for (int i = 0; i < sim_params->n_particles; i += 1){
-        sim_params->densities[i] = sim_params->reference_density;
-    }
-}
-
-void setup_sim_grid(fluid_sim_parameters* sim_params){
-    int n_cells_x = sim_params->n_grid_cells_x;
-    int n_cells_y = sim_params->n_grid_cells_y;
-    int n_cells_z = sim_params->n_grid_cells_z;
-    
-    for (int i = 0; i < n_cells_x; i += 1){
-        for (int j = 0; j < n_cells_y; j += 1){
-            for (int k = 0; k < n_cells_z; k += 1){
-                
-            }
-        }
-    }
+    // ----- space hashing formula
+    int cell_idx = cell_z*n_grid_cells_y*n_grid_cells_x + cell_y*n_grid_cells_x + cell_x;
+    return cell_idx;
 }
 
 //                                              SMOOTHING KERNELS
@@ -205,8 +184,26 @@ static void update_sim_pressure_at_particle_simple(fluid_sim_parameters* sim_par
     //printf("pressure[%d]: %f\n", particle_idx, sim_params->pressures[particle_idx]);
 }
 
-static void update_sim_particle_cells(){
+static void update_sim_grid(fluid_sim_parameters* sim_params){
+    // UPDATE CELL IDX FOR EACH PARTICLE
+    for (int i = 0; i < sim_params->n_particles; i += 1){
+        sim_params->grid_particle_cells[i] = particle_to_cell(sim_params, i);
+    }
+    
+    // UPDATE PREFIX SUMS
+    // first just count cell occurences
+    for (int i = 0; i < sim_params->n_particles; i += 1){
+        sim_params->grid_cells_num_particles_prefix_sums[sim_params->grid_particle_cells[i]] += 1;
+    }
 
+    // then compute prefix sums
+    for (int i = 1; i < sim_params->n_grid_cells_total; i += 1){
+        sim_params->grid_cells_num_particles_prefix_sums[i] += sim_params->grid_cells_num_particles_prefix_sums[i-1];
+    }
+
+    // ORDER PARTICLES BY THEIR CELL INDICES
+    radix_sort_map(sim_params->grid, sim_params->grid_particle_cells, sim_params->n_particles);
+    
 }
 
 //                                          FORCE CALCULATIONS FUNCTIONS
@@ -245,8 +242,6 @@ static void get_out_of_bounds_force(fluid_sim_parameters* sim_params, int partic
     vec3 p_pos;
     glm_vec3_copy(sim_params->positions[particle_idx], p_pos);
 
-    
-    
     vec3 bound_pos;
     glm_vec3_copy(sim_params->bound_pos, bound_pos);
     
@@ -423,32 +418,39 @@ static void get_pressure_force_simple(fluid_sim_parameters* sim_params, int part
 
 }
 
-
-// -------                                      SETUP DENISTIES
+//                                               SETUP FUNCTIONS
 
 static void setup_particle_positions_in_box_test(fluid_sim_parameters* sim_params){
-    vec3 spawn_box_pos;
-    vec3 spawn_box_dims;
-    glm_vec3_copy(sim_params->spawn_box_pos, spawn_box_pos);
-    glm_vec3_copy(sim_params->spawn_box_dims, spawn_box_dims);
-
-    float length = spawn_box_dims[0];
-    float height = spawn_box_dims[1];
-    float width = spawn_box_dims[2];
+    vec3 bound_dims;
+    vec3 bound_dims_halved;
+    vec3 bound_pos;
+    glm_vec3_copy(sim_params->bound_dims, bound_dims);
+    glm_vec3_copy(sim_params->bound_pos, bound_pos);
+    glm_vec3_scale(bound_dims, 0.5, bound_dims_halved);
 
     int n_x = 20;
     int n_y = 20;
     int n_z = 20;
-    float l_x = length / n_x;
-    float l_y = height / n_y;
-    float l_z = width / n_z;
 
+    vec3 start_pos;
+    glm_vec3_sub(bound_pos, bound_dims_halved, start_pos);
+    vec3 add = {4.5, 0, 0};
+   
+    glm_vec3_add(start_pos, add, start_pos);
+    glm_vec3_copy(start_pos, sim_params->positions[0]);
 
-    float MAX = RAND_MAX;
-    float x, y, z;
-    vec3 start_pos = {-length/2.0, -height/2.0, -width/2.0};
-    int idx = 0;
-    for (int i = 0; i < n_x; i += 1){
+    printf("pos 1: (%f, %f, %f)\n", start_pos[0], start_pos[1], start_pos[2]);
+
+   // glm_vec3_add(start_pos, add, start_pos);
+    glm_vec3_add(start_pos, add, start_pos);
+    glm_vec3_add(start_pos, add, start_pos);
+    glm_vec3_copy(start_pos, sim_params->positions[1]);
+
+    
+    printf("pos 2: (%f, %f, %f)\n", start_pos[0], start_pos[1], start_pos[2]);
+    
+
+    /* for (int i = 0; i < n_x; i += 1){
         
         for (int j = 0; j < n_y; j += 1){
 
@@ -457,19 +459,17 @@ static void setup_particle_positions_in_box_test(fluid_sim_parameters* sim_param
                 glm_vec3_add(start_pos, to_add, sim_params->positions[idx]);
                 idx += 1;
 
-                // TESTS
-                /* if (i == n_x / 2 && j == n_y / 2 && k == n_z / 2){
-                    printf("%d: \n", idx);
-                } */
+                
             }
 
         }
         
-    }
+    } */
+    
 }
 
 void setup_particle_positions_in_box(fluid_sim_parameters* sim_params){
-    vec3 spawn_box_pos;
+    /* vec3 spawn_box_pos;
     vec3 spawn_box_dims;
     glm_vec3_copy(sim_params->spawn_box_pos, spawn_box_pos);
     glm_vec3_copy(sim_params->spawn_box_dims, spawn_box_dims);
@@ -491,15 +491,56 @@ void setup_particle_positions_in_box(fluid_sim_parameters* sim_params){
         vec3 to_add_pos = {x, y, z};
         glm_vec3_add(start_pos, to_add_pos, sim_params->positions[i]);
         
-    }
+    } */
 
-    /* setup_particle_positions_in_box_test(sim_params); */
+    setup_particle_positions_in_box_test(sim_params);
+    
     update_sim_densities(sim_params);
-
+    
+    
 
 }
 
-// ----------------------------
+void setup_particle_velocities(fluid_sim_parameters* sim_params){
+    for (int i = 0; i < sim_params->n_particles; i += 1){
+        vec3 start_vel = {-10,-2,0};
+        glm_vec3_copy(start_vel, sim_params->velocities[i]);
+        
+    }
+}
+
+void setup_particle_densities(fluid_sim_parameters* sim_params){
+    for (int i = 0; i < sim_params->n_particles; i += 1){
+        sim_params->densities[i] = sim_params->reference_density;
+    }
+}
+
+// assumes postions have already been set up
+void setup_sim_grid(fluid_sim_parameters* sim_params){
+    int n_cells_x = sim_params->n_grid_cells_x;
+    int n_cells_y = sim_params->n_grid_cells_y;
+    int n_cells_z = sim_params->n_grid_cells_z;
+    int n_cells_total = n_cells_x*n_cells_y*n_cells_z;
+
+    for (int i = 0; i < sim_params->n_particles; i += 1){
+        sim_params->grid[i] = i;
+    }
+
+    update_sim_grid(sim_params);
+    
+    printf("grid:\n");
+    print_int_array(sim_params->grid, sim_params->n_particles);
+    printf("----------\n");
+
+    printf("particle_cells:\n");
+    print_int_array(sim_params->grid_particle_cells, sim_params->n_particles);
+    printf("----------\n");
+
+    /* printf("cells prefix sums:\n");
+    print_int_array(sim_params->grid_cells_num_particles_prefix_sums, sim_params->n_grid_cells_total);
+    printf("----------\n"); */
+
+}
 
 // SIMULATION
 void one_sim_step(fluid_sim_parameters* sim_params){
