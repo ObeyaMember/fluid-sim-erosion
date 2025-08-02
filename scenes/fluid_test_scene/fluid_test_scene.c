@@ -28,12 +28,6 @@ float mouse_x = 400;
 float mouse_y = 400;
 
 
-//                                  SHADERS AND SHADER PROGRAMS
-unsigned int particle_vertex_shader, particle_fragment_shader;
-unsigned int particle_shader_program;
-
-unsigned int bounding_vertex_shader, bounding_fragment_shader;
-unsigned int bounding_shader_program;
 
 //                                      BUFFERS / TEXTURES
 
@@ -106,97 +100,6 @@ fluid_sim_parameters fluid_sim_params;
 
 //                                        SCENE FUNCTIONS
 //                                             SETUP
-static void setup_shaders(){ // and shader programs
-    // PARTICLES SHADERS
-    const char* particle_vertex_shader_source = get_shader_content("./shaders/main_pipeline/fluid_test_scene/particles/particle_vertex_shader.glsl");
-    const char* particle_fragment_shader_source = get_shader_content("./shaders/main_pipeline/fluid_test_scene/particles/particle_fragment_shader.glsl");
-    
-    setup_fvc_shader(&particle_vertex_shader, &particle_vertex_shader_source, "vertex");
-    fvc_shader_comp_error(&particle_vertex_shader, "vertex");
-    
-    setup_fvc_shader(&particle_fragment_shader, &particle_fragment_shader_source, "fragment");
-    fvc_shader_comp_error(&particle_fragment_shader, "fragment");
-
-    // PARTICLES SHADERS PROGRAM
-    setup_fvc_shader_prog(&particle_shader_program, &particle_fragment_shader, &particle_vertex_shader, NULL, "main_pipeline");
-    fvc_shader_prog_link_error(&particle_shader_program, "main_pipeline");
-    
-    // BOUNDING SHADERS
-    const char* bounding_vertex_shader_source = get_shader_content("./shaders/main_pipeline/fluid_test_scene/sim_bounding/bounding_vertex_shader.glsl");
-
-    const char* bounding_fragment_shader_source = get_shader_content("./shaders/main_pipeline/fluid_test_scene/sim_bounding/bounding_fragment_shader.glsl");
-    
-    setup_fvc_shader(&bounding_vertex_shader, &bounding_vertex_shader_source, "vertex");
-    fvc_shader_comp_error(&bounding_vertex_shader, "vertex");
-    
-    setup_fvc_shader(&bounding_fragment_shader, &bounding_fragment_shader_source, "fragment");
-    fvc_shader_comp_error(&bounding_fragment_shader, "fragment");
-
-    // BOUNDING SHADER PROGRAM
-    setup_fvc_shader_prog(&bounding_shader_program, &bounding_fragment_shader, &bounding_vertex_shader, NULL, "main_pipeline");
-    fvc_shader_prog_link_error(&bounding_shader_program, "main_pipeline");
-}
-
-// TRANSFERRED
-static void setup_buffers(){
-    // VAO
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-    
-    // ONE FLUID PARTICLE
-    glGenBuffers(1, &fluid_particle_vertices_VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_particle_vertices_VBO);
-    glBufferData(GL_ARRAY_BUFFER, fluid_particle_n_vertices*3*sizeof(float), fluid_particle_vertices, GL_DYNAMIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    
-    // ALL FLUID PARTICLES
-    glGenBuffers(1, &fluid_particles_pos_VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_pos_VBO);
-    glBufferData(GL_ARRAY_BUFFER, n_fluid_particles * 3 * sizeof(float), fluid_particle_positions , GL_DYNAMIC_DRAW);
-    
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribDivisor(1, 1);
-
-    // DENSITIES
-    glGenBuffers(1, &fluid_particles_densities_VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_densities_VBO);
-    glBufferData(GL_ARRAY_BUFFER, n_fluid_particles * sizeof(float), fluid_particle_densities , GL_DYNAMIC_DRAW);
-    
-    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(float), (void*)0);
-    glEnableVertexAttribArray(3);
-    glVertexAttribDivisor(3, 1);
-
-    // PRESSURES
-    glGenBuffers(1, &fluid_particles_pressures_VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_pressures_VBO);
-    glBufferData(GL_ARRAY_BUFFER, n_fluid_particles * sizeof(float), fluid_particle_densities , GL_DYNAMIC_DRAW);
-    
-    glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(float), (void*)0);
-    glEnableVertexAttribArray(4);
-    glVertexAttribDivisor(4, 1);
-
-    // ONE FLUID PARTICLE IBO
-    glGenBuffers(1, &fluid_particle_IBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fluid_particle_IBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, fluid_particle_n_indices*sizeof(unsigned), fluid_particle_indices, GL_DYNAMIC_DRAW);
-
-    // SIMULATION BOUNDINGS
-    glGenBuffers(1, &fluid_sim_bounding_vertices_VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_sim_bounding_vertices_VBO);
-    glBufferData(GL_ARRAY_BUFFER, fluid_sim_bounding_n_vertices * 3 * sizeof(float), fluid_sim_bounding_vertices, GL_DYNAMIC_DRAW);
-
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(2);
-
-    // SIMULATION BOUNDING IBO
-    glGenBuffers(1, &fluid_sim_bounding_IBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fluid_sim_bounding_IBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, fluid_sim_bounding_n_indices*sizeof(unsigned), fluid_sim_bounding_indices, GL_DYNAMIC_DRAW);
-}
-
 
 static void setup_data(){
 
@@ -299,106 +202,8 @@ static void loop_camera_and_matrices(GLFWwindow* window){
 }
 
 
-//                                         SIM BOUNDING
-// TRANSFERRED
-static void loop_bounding_buffers(){
-    // SIMULATION BOUNDINGS
-    
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_sim_bounding_vertices_VBO);
-    glBufferData(GL_ARRAY_BUFFER, fluid_sim_bounding_n_vertices * 3 * sizeof(float), fluid_sim_bounding_vertices, GL_DYNAMIC_DRAW);
-
-    // SIMULATION BOUNDINGS IBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fluid_sim_bounding_IBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, fluid_sim_bounding_n_indices*sizeof(unsigned), fluid_sim_bounding_indices, GL_DYNAMIC_DRAW);
-
-}
-
-// TRANSFERRED
-static void loop_draw_bounding(){
-
-    // USE APPROPRIATE SHADER PROGRAM
-    glUseProgram(bounding_shader_program);
-
-    // BOUNDING BUFFER
-    loop_bounding_buffers();
-
-    // PASSING UNIFORMS
-    int viewLoc = glGetUniformLocation(bounding_shader_program, "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view[0]);
-    int projectionLoc = glGetUniformLocation(bounding_shader_program, "projection");
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projection[0]);
-    int boundingPosLoc = glGetUniformLocation(bounding_shader_program, "bounding_pos");
-    glUniform3fv(boundingPosLoc, 1, bound_pos);
-
-    // DRAWING
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_sim_bounding_vertices_VBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fluid_sim_bounding_IBO);
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-    glDrawElements(GL_TRIANGLES, fluid_sim_bounding_n_indices, GL_UNSIGNED_INT, 0);
-
-}
-
-//                                       FLUID PARTICLES
-
-static void loop_fluid_particles_buffers(){
-    // ONE FLUID PARTICLE
-    
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_particle_vertices_VBO);
-    glBufferData(GL_ARRAY_BUFFER, fluid_particle_n_vertices*3*sizeof(float), fluid_particle_vertices, GL_DYNAMIC_DRAW);
-    
-    // ALL FLUID PARTICLES
-    
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_pos_VBO);
-    glBufferData(GL_ARRAY_BUFFER, n_fluid_particles * 3 * sizeof(float), fluid_particle_positions , GL_DYNAMIC_DRAW);
-
-    // DENSITIES
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_densities_VBO);
-    glBufferData(GL_ARRAY_BUFFER, n_fluid_particles * sizeof(float), fluid_particle_densities , GL_DYNAMIC_DRAW);
-
-    // PRESSURES
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_pressures_VBO);
-    glBufferData(GL_ARRAY_BUFFER, n_fluid_particles * sizeof(float), fluid_particle_densities , GL_DYNAMIC_DRAW);
-
-    // ONE FLUID PARTICLE IBO
-    
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fluid_particle_IBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, fluid_particle_n_indices*sizeof(unsigned), fluid_particle_indices, GL_DYNAMIC_DRAW);
-
-}
-
-// TRANSFERRED
-static void loop_draw_fluid_particles(){
-    // USE APPROPRIATE SHADER PROGRAM
-    glUseProgram(particle_shader_program);
-
-    // FLUID PARTICLES BUFFER
-    loop_fluid_particles_buffers();
-
-    // PASSING UNIFORMS
-    int viewLoc = glGetUniformLocation(particle_shader_program, "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view[0]);
-    int projectionLoc = glGetUniformLocation(particle_shader_program, "projection");
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projection[0]);
-    int particleRadiusLoc = glGetUniformLocation(particle_shader_program, "particle_radius");
-    glUniform1f(particleRadiusLoc, fluid_particle_render_radius);
-
-    // DRAWING
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_particle_vertices_VBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fluid_particle_IBO);
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_pos_VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_densities_VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, fluid_particles_pressures_VBO);
-    
-    
-    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-    glDrawElementsInstanced(GL_TRIANGLES, fluid_particle_n_indices, GL_UNSIGNED_INT, 0, n_fluid_particles);
-}
-
 //                                      SCENE SETUP AND LOOP
 void fluid_test_scene_setup(GLFWwindow* window){
-    setup_shaders();
     setup_camera_and_matrices();
     printf("%f\n", camera_pos[1]);
     
@@ -408,7 +213,7 @@ void fluid_test_scene_setup(GLFWwindow* window){
     
     // FLUID RENDERER
     pass_data_to_fluid_renderer();
-    fluid_renderer_setup_buffers(&fluid_sim_params);
+    fluid_renderer_setup(&fluid_sim_params);
     
     
     glEnable(GL_BLEND);
@@ -437,10 +242,10 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
     
     // FLUID RENDERER
     // DRAW BOUNDING
-    fluid_renderer_loop_draw_bounding(bounding_shader_program, view, projection, &fluid_sim_params);
+    fluid_renderer_loop_draw_bounding(view, projection, &fluid_sim_params);
 
     // DRAW PARTICLES
-    fluid_renderer_loop_draw_fluid_particles(particle_shader_program, view, projection, fluid_particle_render_radius, &fluid_sim_params);
+    fluid_renderer_loop_draw_fluid_particles(view, projection, fluid_particle_render_radius, &fluid_sim_params);
 
 }   
 

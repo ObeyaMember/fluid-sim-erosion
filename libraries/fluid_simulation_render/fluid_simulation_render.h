@@ -13,8 +13,8 @@
 
 void fluid_renderer_pass_one_particle_data(float* particle_vertices, int particle_n_vertices, unsigned int* particle_indices, int particle_n_indices);
 void fluid_renderer_pass_bounding_data(float* sim_bounding_vertices, int sim_bounding_n_vertices, unsigned int* sim_bounding_indices, int sim_bounding_n_indices);
-void fluid_renderer_setup_buffers(fluid_sim_parameters* sim_params);
-void fluid_renderer_loop_draw_bounding(int bounding_shader_program, mat4 view, mat4 projection, fluid_sim_parameters* sim_params);
-void fluid_renderer_loop_draw_fluid_particles(int particle_shader_program, mat4 view, mat4 projection, float particle_render_radius, fluid_sim_parameters* sim_params);
+void fluid_renderer_setup(fluid_sim_parameters* sim_params);
+void fluid_renderer_loop_draw_bounding(mat4 view, mat4 projection, fluid_sim_parameters* sim_params);
+void fluid_renderer_loop_draw_fluid_particles(mat4 view, mat4 projection, float particle_render_radius, fluid_sim_parameters* sim_params);
 
 #endif

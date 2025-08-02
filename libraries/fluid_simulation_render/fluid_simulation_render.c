@@ -19,6 +19,14 @@ static int fluid_sim_bounding_n_vertices;
 static unsigned int* fluid_sim_bounding_indices;
 static int fluid_sim_bounding_n_indices;
 
+//                                                  SHADERS AND SHADER PROGRAMS
+unsigned int particle_vertex_shader, particle_fragment_shader;
+unsigned int particle_shader_program;
+
+unsigned int bounding_vertex_shader, bounding_fragment_shader;
+unsigned int bounding_shader_program;
+
+
 //                                                              BUFFERS
 static unsigned int fluid_particle_vertices_VBO, fluid_particles_pos_VBO, fluid_particles_densities_VBO, fluid_particles_pressures_VBO;
 static unsigned int VAO;
@@ -50,6 +58,38 @@ void fluid_renderer_pass_bounding_data(float* sim_bounding_vertices, int sim_bou
     fluid_sim_bounding_n_indices = sim_bounding_n_indices;
     printf("a\n");
 }
+
+static void setup_shaders(){ // and shader programs
+    // PARTICLES SHADERS
+    const char* particle_vertex_shader_source = get_shader_content("./shaders/main_pipeline/fluid_test_scene/particles/particle_vertex_shader.glsl");
+    const char* particle_fragment_shader_source = get_shader_content("./shaders/main_pipeline/fluid_test_scene/particles/particle_fragment_shader.glsl");
+    
+    setup_fvc_shader(&particle_vertex_shader, &particle_vertex_shader_source, "vertex");
+    fvc_shader_comp_error(&particle_vertex_shader, "vertex");
+    
+    setup_fvc_shader(&particle_fragment_shader, &particle_fragment_shader_source, "fragment");
+    fvc_shader_comp_error(&particle_fragment_shader, "fragment");
+
+    // PARTICLES SHADERS PROGRAM
+    setup_fvc_shader_prog(&particle_shader_program, &particle_fragment_shader, &particle_vertex_shader, NULL, "main_pipeline");
+    fvc_shader_prog_link_error(&particle_shader_program, "main_pipeline");
+    
+    // BOUNDING SHADERS
+    const char* bounding_vertex_shader_source = get_shader_content("./shaders/main_pipeline/fluid_test_scene/sim_bounding/bounding_vertex_shader.glsl");
+
+    const char* bounding_fragment_shader_source = get_shader_content("./shaders/main_pipeline/fluid_test_scene/sim_bounding/bounding_fragment_shader.glsl");
+    
+    setup_fvc_shader(&bounding_vertex_shader, &bounding_vertex_shader_source, "vertex");
+    fvc_shader_comp_error(&bounding_vertex_shader, "vertex");
+    
+    setup_fvc_shader(&bounding_fragment_shader, &bounding_fragment_shader_source, "fragment");
+    fvc_shader_comp_error(&bounding_fragment_shader, "fragment");
+
+    // BOUNDING SHADER PROGRAM
+    setup_fvc_shader_prog(&bounding_shader_program, &bounding_fragment_shader, &bounding_vertex_shader, NULL, "main_pipeline");
+    fvc_shader_prog_link_error(&bounding_shader_program, "main_pipeline");
+}
+
 
 static void setup_particles_buffers(fluid_sim_parameters* sim_params){
     n_particles = sim_params->n_particles;
@@ -123,7 +163,8 @@ static void setup_VAO(){
     glBindVertexArray(VAO);
 }
 
-void fluid_renderer_setup_buffers(fluid_sim_parameters* sim_params){
+void fluid_renderer_setup(fluid_sim_parameters* sim_params){
+    setup_shaders();
     setup_VAO();
     setup_particles_buffers(sim_params);
     setup_fluid_data_buffers(sim_params);
@@ -145,7 +186,7 @@ static void loop_bounding_buffers(){
 
 }
 
-void fluid_renderer_loop_draw_bounding(int bounding_shader_program, mat4 view, mat4 projection, fluid_sim_parameters* sim_params){
+void fluid_renderer_loop_draw_bounding(mat4 view, mat4 projection, fluid_sim_parameters* sim_params){
     //printf("baound_vertices[0]: %f\n", fluid_sim_bounding_vertices[0]);
     vec3 bound_pos;
     glm_vec3_copy(sim_params->bound_pos, bound_pos);
@@ -212,7 +253,7 @@ static void loop_fluid_buffers(fluid_sim_parameters* sim_params){
     loop_fluid_data_buffers(sim_params);
 }
 
-void fluid_renderer_loop_draw_fluid_particles(int particle_shader_program, mat4 view, mat4 projection, float particle_render_radius, fluid_sim_parameters* sim_params){
+void fluid_renderer_loop_draw_fluid_particles(mat4 view, mat4 projection, float particle_render_radius, fluid_sim_parameters* sim_params){
     // USE APPROPRIATE SHADER PROGRAM
     glUseProgram(particle_shader_program);
 
