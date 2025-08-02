@@ -5,10 +5,10 @@
 vec3 x_axis = {1,0,0};
 vec3 y_axis = {0,1,0};
 vec3 z_axis = {0,0,1};
-mat4 view, projection;
+/* mat4 view, projection; */
 
 //                                          CAMERA
-float camera_fov = 100.0;
+/* float camera_fov = 100.0;
 float camera_aspect = 1;
 float camera_near = 0.01;
 float camera_far = 1000.0;
@@ -18,7 +18,24 @@ float camera_move_speed = 10;
 float camera_look_speed = 10;
 float camera_zoom_speed = 1;
 vec3 camera_pos = {0, 0, -30};
-vec3 camera_dir = {0, 1, 0};
+vec3 camera_dir = {0, 1, 0}; */
+
+camera_3d camera_1 = {
+    .camera_fov = 100.0,
+    .camera_aspect = 1.0,
+    .camera_near = 0.01,
+    .camera_far = 1000.0,
+    .camera_pitch = 0.0,
+    .camera_yaw = 0.0,
+    .camera_move_speed = 10.0,
+    .camera_look_speed = 10.0,
+    .camera_zoom_speed = 1.0,
+    .camera_pos = {0,0,-30},
+    .camera_dir = {0,1,0},
+
+    //.view,
+    //.projection,
+};
 
 
 //                                          ENGINE 
@@ -143,7 +160,7 @@ static void setup_data(){
     fluid_sim_params.densities = &fluid_particle_densities[0];
     fluid_sim_params.pressures = &fluid_particle_pressures[0];
     
-    // ---------
+    // --------- OTHER
     
     // ALL PARTICLES
     setup_particle_positions_in_box(&fluid_sim_params);
@@ -176,41 +193,15 @@ static void pass_data_to_fluid_renderer(){
     fluid_renderer_pass_one_particle_data(fluid_particle_vertices, fluid_particle_n_vertices, fluid_particle_indices, fluid_particle_n_indices);
 }
 
-static void setup_camera_and_matrices(){
-    // CAMERA
-    //glm_vec3_zero(camera_pos);
-    //glm_vec3_zero(camera_dir);
-
-    // VIEW AND PROJECTION
-    glm_mat4_identity(view);
-    vec3 target;
-    glm_vec3_add(camera_pos, camera_dir, target);
-    
-    glm_translate(view, camera_pos);
-    glm_lookat(camera_pos, target, y_axis, view);
-
-    glm_perspective(glm_rad(camera_fov), camera_aspect, camera_near, camera_far, projection);
-}
-
-//                                           GAME LOOP
-static void loop_camera_and_matrices(GLFWwindow* window){
-    // UPDATE THE TRANSFORM MATRICES
-    glm_mat4_identity(view); // RESET VIEW MATRIX AFTER EACH FRAME BEFORE UPDATING CAMERA
-    camera_3d_angles_update(window, camera_dir, camera_look_speed, &camera_pitch, &camera_yaw, &mouse_x, &mouse_y, delta_time);
-    camera_3d_move_update(window, camera_pos, camera_dir, view, camera_move_speed, delta_time);
-    camera_3d_direction_update(window, camera_pos, camera_dir, view, camera_pitch, camera_yaw);
-}
-
-
 //                                      SCENE SETUP AND LOOP
 void fluid_test_scene_setup(GLFWwindow* window){
-    setup_camera_and_matrices();
-    printf("%f\n", camera_pos[1]);
-    
     // DATA
     setup_data();
     //setup_buffers();
-    
+
+    // CAMERA
+    camera_setup(&camera_1);
+
     // FLUID RENDERER
     pass_data_to_fluid_renderer();
     fluid_renderer_setup(&fluid_sim_params);
@@ -238,14 +229,14 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
     one_sim_step(&fluid_sim_params);
 
     // CAMERA
-    loop_camera_and_matrices(window);
+    camera_loop(window, &camera_1, &mouse_x, &mouse_y, delta_time);
     
     // FLUID RENDERER
     // DRAW BOUNDING
-    fluid_renderer_loop_draw_bounding(view, projection, &fluid_sim_params);
+    fluid_renderer_loop_draw_bounding(camera_1.view, camera_1.projection, &fluid_sim_params);
 
     // DRAW PARTICLES
-    fluid_renderer_loop_draw_fluid_particles(view, projection, fluid_particle_render_radius, &fluid_sim_params);
+    fluid_renderer_loop_draw_fluid_particles(camera_1.view, camera_1.projection, fluid_particle_render_radius, &fluid_sim_params);
 
 }   
 

@@ -174,13 +174,13 @@ void default_scene_main_loop(GLFWwindow* window){
     glUseProgram(main_shader_program);
 
     // UPDATE THE TRANSFORM MATRICES
-    glm_rotate(model, glm_rad(0.3), x_axis);
+    /* glm_rotate(model, glm_rad(0.3), x_axis);
     
     glm_mat4_identity(view); // RESET VIEW MATRIX AFTER EACH FRAME BEFORE UPDATING CAMERA
     camera_3d_angles_update(window, camera_dir, camera_look_speed, &camera_pitch, &camera_yaw, &mouse_x, &mouse_y, delta_time);
     //printf("pitch: %f, yaw: %f\n", camera_pitch, camera_yaw);
     camera_3d_move_update(window, camera_pos, camera_dir, view, camera_move_speed, delta_time);
-    camera_3d_direction_update(window, camera_pos, camera_dir, view, camera_pitch, camera_yaw);
+    camera_3d_direction_update(window, camera_pos, camera_dir, view, camera_pitch, camera_yaw); */
     
 
 

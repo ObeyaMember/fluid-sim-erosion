@@ -13,12 +13,13 @@ camera features:
     - set to orthographic or perspective (ui? -> yes - > imgui)
 */
 
-void camera_3d_angles_update(GLFWwindow* window, vec3 camera_dir, float camera_look_speed, float* camera_pitch, float* camera_yaw, float* last_mouse_x, float* last_mouse_y, float delta_time){
+
+static void camera_3d_angles_update(GLFWwindow* window, vec3 camera_dir, float camera_look_speed, float* camera_pitch, float* camera_yaw, float* last_mouse_x, float* last_mouse_y, float delta_time){
     
     double new_mouse_x, new_mouse_y, x_offset, y_offset;
     glfwGetCursorPos(window, &new_mouse_x, &new_mouse_y);
     
-    x_offset = (new_mouse_x - *last_mouse_x); // WHY TF DO THESE RANDOMLY NEED TO BE MADE OPPOSITE
+    x_offset = (new_mouse_x - *last_mouse_x); // WHY TF DO THESE RANDOMLY NEED TO BE MADE OPPOSITE - solved - it's cuz i'm dumb, wasn't capping camera pitch so it flipped over sometimes
     y_offset = (new_mouse_y - *last_mouse_y);
 
     *last_mouse_x = new_mouse_x;
@@ -28,7 +29,7 @@ void camera_3d_angles_update(GLFWwindow* window, vec3 camera_dir, float camera_l
     *camera_pitch = glm_clamp(*camera_pitch + (y_offset * camera_look_speed * delta_time), 91, 269);
 }
 
-void camera_3d_direction_update(GLFWwindow* window, vec3 camera_pos, vec3 camera_dir, mat4 view, float camera_pitch, float camera_yaw){
+static void camera_3d_direction_update(GLFWwindow* window, vec3 camera_pos, vec3 camera_dir, mat4 view, float camera_pitch, float camera_yaw){
     
     camera_dir[0] = cos(glm_rad(camera_yaw)) * cos(glm_rad(camera_pitch));
     camera_dir[1] = sin(glm_rad(camera_pitch));
@@ -41,7 +42,7 @@ void camera_3d_direction_update(GLFWwindow* window, vec3 camera_pos, vec3 camera
 
 }
 
-void camera_3d_move_update(GLFWwindow* window, vec3 camera_pos, vec3 camera_dir, mat4 view, float camera_move_speed, float delta_time){
+static void camera_3d_move_update(GLFWwindow* window, vec3 camera_pos, vec3 camera_dir, mat4 view, float camera_move_speed, float delta_time){
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
         vec3 a;
         glm_vec3_scale(camera_dir, camera_move_speed * delta_time, a); // WHY TF DO THESE RANDOMLY NEED TO BE MADE OPPOSITE
@@ -88,9 +89,33 @@ void camera_3d_move_update(GLFWwindow* window, vec3 camera_pos, vec3 camera_dir,
     //printf("x, y, z: %f, %f, %f\n", camera_pos[0], camera_pos[1], camera_pos[2]);
 }
 
-void camera_3d_zoom_update(GLFWwindow* window, float* camera_fov, float camera_zoom_speed){
+static void camera_3d_zoom_update(GLFWwindow* window, float* camera_fov, float camera_zoom_speed){
     
 }
 
+void camera_setup(camera_3d* camera){
+    // CAMERA
+    //glm_vec3_zero(camera_pos);
+    //glm_vec3_zero(camera_dir);
 
+    // VIEW AND PROJECTION
+    // view matrix
+    glm_mat4_identity(camera->view);
+    vec3 target;
+    glm_vec3_add(camera->camera_pos, camera->camera_dir, target);
+    
+    glm_translate(camera->view, camera->camera_pos);
+    glm_lookat(camera->camera_pos, target, c_y_axis, camera->view);
+
+    // projection matrix
+    glm_perspective(glm_rad(camera->camera_fov), camera->camera_aspect, camera->camera_near, camera->camera_far, camera->projection);
+}
+
+void camera_loop(GLFWwindow* window, camera_3d* camera, float* mouse_x, float* mouse_y, float delta_time){
+    // UPDATE THE TRANSFORM MATRICES
+    glm_mat4_identity(camera->view); // RESET VIEW MATRIX AFTER EACH FRAME BEFORE UPDATING CAMERA
+    camera_3d_angles_update(window, camera->camera_dir, camera->camera_look_speed, &camera->camera_pitch, &camera->camera_yaw, mouse_x, mouse_y, delta_time);
+    camera_3d_move_update(window, camera->camera_pos, camera->camera_dir, camera->view, camera->camera_move_speed, delta_time);
+    camera_3d_direction_update(window, camera->camera_pos, camera->camera_dir, camera->view, camera->camera_pitch, camera->camera_yaw);
+}
 
