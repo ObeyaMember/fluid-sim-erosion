@@ -137,6 +137,7 @@ static void setup_shaders(){ // and shader programs
     fvc_shader_prog_link_error(&bounding_shader_program, "main_pipeline");
 }
 
+// TRANSFERRED
 static void setup_buffers(){
     // VAO
     glGenVertexArrays(1, &VAO);
@@ -195,6 +196,7 @@ static void setup_buffers(){
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fluid_sim_bounding_IBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, fluid_sim_bounding_n_indices*sizeof(unsigned), fluid_sim_bounding_indices, GL_DYNAMIC_DRAW);
 }
+
 
 static void setup_data(){
 
@@ -266,6 +268,11 @@ static void setup_data(){
 
 }
 
+static void pass_data_to_fluid_renderer(){
+    fluid_renderer_pass_bounding_data(fluid_sim_bounding_vertices, fluid_sim_bounding_n_vertices, fluid_sim_bounding_indices, fluid_sim_bounding_n_indices);
+    fluid_renderer_pass_one_particle_data(fluid_particle_vertices, fluid_particle_n_vertices, fluid_particle_indices, fluid_particle_n_indices);
+}
+
 static void setup_camera_and_matrices(){
     // CAMERA
     //glm_vec3_zero(camera_pos);
@@ -291,7 +298,9 @@ static void loop_camera_and_matrices(GLFWwindow* window){
     camera_3d_direction_update(window, camera_pos, camera_dir, view, camera_pitch, camera_yaw);
 }
 
+
 //                                         SIM BOUNDING
+// TRANSFERRED
 static void loop_bounding_buffers(){
     // SIMULATION BOUNDINGS
     
@@ -304,6 +313,7 @@ static void loop_bounding_buffers(){
 
 }
 
+// TRANSFERRED
 static void loop_draw_bounding(){
 
     // USE APPROPRIATE SHADER PROGRAM
@@ -317,6 +327,8 @@ static void loop_draw_bounding(){
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view[0]);
     int projectionLoc = glGetUniformLocation(bounding_shader_program, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projection[0]);
+    int boundingPosLoc = glGetUniformLocation(bounding_shader_program, "bounding_pos");
+    glUniform3fv(boundingPosLoc, 1, bound_pos);
 
     // DRAWING
     glBindVertexArray(VAO);
@@ -328,6 +340,7 @@ static void loop_draw_bounding(){
 }
 
 //                                       FLUID PARTICLES
+
 static void loop_fluid_particles_buffers(){
     // ONE FLUID PARTICLE
     
@@ -354,11 +367,12 @@ static void loop_fluid_particles_buffers(){
 
 }
 
+// TRANSFERRED
 static void loop_draw_fluid_particles(){
     // USE APPROPRIATE SHADER PROGRAM
     glUseProgram(particle_shader_program);
 
-    // BOUNDING BUFFER
+    // FLUID PARTICLES BUFFER
     loop_fluid_particles_buffers();
 
     // PASSING UNIFORMS
@@ -386,8 +400,16 @@ static void loop_draw_fluid_particles(){
 void fluid_test_scene_setup(GLFWwindow* window){
     setup_shaders();
     setup_camera_and_matrices();
+    printf("%f\n", camera_pos[1]);
+    
+    // DATA
     setup_data();
-    setup_buffers();
+    //setup_buffers();
+    
+    // FLUID RENDERER
+    pass_data_to_fluid_renderer();
+    fluid_renderer_setup_buffers(&fluid_sim_params);
+    
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -405,22 +427,20 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
     glClearColor(0.3f, 0.4f, 0.6f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // APPLY SIMULATION STEP
+    // NEXT SIM STEP
     fluid_sim_params.delta_time = delta_time;
     pause_sim(window, &fluid_sim_params);
     one_sim_step(&fluid_sim_params);
 
-    
+    // CAMERA
     loop_camera_and_matrices(window);
     
+    // FLUID RENDERER
     // DRAW BOUNDING
-    
-    loop_draw_bounding();
+    fluid_renderer_loop_draw_bounding(bounding_shader_program, view, projection, &fluid_sim_params);
 
     // DRAW PARTICLES
-
-    loop_draw_fluid_particles();
-
+    fluid_renderer_loop_draw_fluid_particles(particle_shader_program, view, projection, fluid_particle_render_radius, &fluid_sim_params);
 
 }   
 

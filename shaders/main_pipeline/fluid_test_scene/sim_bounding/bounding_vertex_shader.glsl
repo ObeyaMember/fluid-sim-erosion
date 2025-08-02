@@ -7,13 +7,14 @@ layout (location = 2) in vec3 bounding_ver_pos;
 
 uniform mat4 view;
 uniform mat4 projection;
+uniform vec3 bounding_pos;
 
 //uniform vec3 bPos[5];
 
 void main()
 {
 
-gl_Position = projection * view * vec4(bounding_ver_pos, 1.0);
+gl_Position = projection * view * vec4(bounding_ver_pos + bounding_pos, 1.0);
 
 
 

@@ -24,12 +24,12 @@ int main(){
 
     // random testing ---------
 
-    int grid[10] = {0,1,2,3,4,5,6,7,8,9};
+    /* int grid[10] = {0,1,2,3,4,5,6,7,8,9};
                             // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 
     int particles_cells[10] = {1, 2, 2, 3, 5, 1, 2, 10, 4, 5};
     radix_sort_map(grid, particles_cells, 10);
     print_int_array(grid, 10);
-
+ */
     // ----------
 
     GLFWwindow* beloved_window = setup_window(800, 800, "Most  Loved  Window");

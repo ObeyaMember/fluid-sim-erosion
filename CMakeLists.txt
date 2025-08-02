@@ -26,6 +26,7 @@ add_subdirectory(./libraries/utilities/general_purpose)
 add_subdirectory(./libraries/utilities/)
 
 add_subdirectory(./libraries/fluid_simulation)
+add_subdirectory(./libraries/fluid_simulation_render)
 
 # Scenes
 add_subdirectory(./scenes/default_scene/)
@@ -40,7 +41,9 @@ list(APPEND SourceFiles "./libraries/utilities/camera/camera.c")
 list(APPEND SourceFiles "./libraries/utilities/primitives/primitives.c")
 list(APPEND SourceFiles "./libraries/utilities/transforms/transforms.c")
 list(APPEND SourceFiles "./libraries/utilities/general_purpose/general_purpose.c")
+
 list(APPEND SourceFiles "./libraries/fluid_simulation/fluid_simulation.c")
+list(APPEND SourceFiles "./libraries/fluid_simulation_render/fluid_simulation_render.c")
 
 # the scene aren't required in the add_executable command because they're used directly in main file and compiler do that good
 # the others od cuz used in other libraries such as in scenes and not in main directly and compiler do that bad cuz unit or some
@@ -63,7 +66,9 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC primitives)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC transforms)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC general_purpose)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC utilities)
+
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC fluid_simulation)
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC fluid_simulation_render)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC default_scene)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC fluid_test_scene)

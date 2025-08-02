@@ -13,6 +13,7 @@
 #include "../../libraries/GLFW/glfw3.h"
 
 #include "../../libraries/fluid_simulation/fluid_simulation.h"
+#include "../../libraries/fluid_simulation_render/fluid_simulation_render.h"
 
 void fluid_test_scene_setup(GLFWwindow* window);
 void fluid_test_scene_main_loop(GLFWwindow* window);
