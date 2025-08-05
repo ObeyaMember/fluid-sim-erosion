@@ -23,7 +23,8 @@ struct fluid_sim_parameters_s {
     int n_grid_cells_total;
     int* grid_particle_cells; // holds cell idx of particle i at i
     int* grid_cells_num_particles_prefix_sums; 
-    int* grid; // holds cell indices ordered by their cell indices
+    int* grid; // holds particle indices ordered by their cell indices
+    
     
     // SPAWN BOX
     vec3 spawn_box_pos;

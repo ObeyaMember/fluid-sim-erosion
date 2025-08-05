@@ -8,6 +8,12 @@
 #include "../../stb_image/stb_image.h" */
 #include "../../GLFW/glfw3.h"
 
+enum Primitives {
+    PRIM_CUBE,
+    PRIM_RECT,
+    PRIM_PLANE
+};
+
 int get_prim_plane_n_vertices();
 int get_prim_plane_n_indices();
 void get_prim_plane(float* vertices, unsigned int* indices,float side_size);

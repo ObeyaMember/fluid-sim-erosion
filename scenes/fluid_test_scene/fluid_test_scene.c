@@ -1,25 +1,12 @@
 #include "fluid_test_scene.h"
 
-//                                  SCENE VARIABLES
-//                                      WORLD
+//                                      SCENE VARIABLES
+//                                          WORLD
 vec3 x_axis = {1,0,0};
 vec3 y_axis = {0,1,0};
 vec3 z_axis = {0,0,1};
-/* mat4 view, projection; */
 
-//                                          CAMERA
-/* float camera_fov = 100.0;
-float camera_aspect = 1;
-float camera_near = 0.01;
-float camera_far = 1000.0;
-float camera_pitch = 0.0;
-float camera_yaw = 0.0;
-float camera_move_speed = 10;
-float camera_look_speed = 10;
-float camera_zoom_speed = 1;
-vec3 camera_pos = {0, 0, -30};
-vec3 camera_dir = {0, 1, 0}; */
-
+//                                           CAMERA  
 camera_3d camera_1 = {
     .camera_fov = 100.0,
     .camera_aspect = 1.0,
@@ -37,23 +24,11 @@ camera_3d camera_1 = {
     //.projection,
 };
 
-
-//                                          ENGINE 
+//                                           ENGINE 
 float delta_time = 1.0;
 float last_frame_time = 0.0;
 float mouse_x = 400;
 float mouse_y = 400;
-
-
-
-//                                      BUFFERS / TEXTURES
-
-unsigned int fluid_particle_vertices_VBO, fluid_particles_pos_VBO, fluid_particles_densities_VBO, fluid_particles_pressures_VBO;
-unsigned int VAO;
-unsigned int fluid_particle_IBO;
-
-unsigned int fluid_sim_bounding_vertices_VBO;
-unsigned int fluid_sim_bounding_IBO;
 
 //                                            DATA
 //                                      FLUID PARTICLES 
@@ -87,13 +62,15 @@ vec3 bound_pos = {0,0,0};
 vec3 bound_dims = {40,50,5};
 float fluid_sim_out_of_bounds_stiffness = 500;
 
-
-
 float* fluid_sim_bounding_vertices;
 int fluid_sim_bounding_n_vertices;
 
 unsigned int* fluid_sim_bounding_indices;
 int fluid_sim_bounding_n_indices;
+
+//                                      SPAWNING PARTICLES BOX
+vec3 spawn_box_pos = {0,-20,0};
+vec3 spawn_box_dims = {40,10,5};
 
 //                                      SPATIAL PARTITIONING GRID
 #define FLUID_SIM_N_GRID_CELLS_X 10
@@ -107,19 +84,13 @@ int fluid_sim_grid_particle_cells[N_FLUID_SIM_PARTICLES];
 int fluid_sim_grid_num_particles_prefix_sums[FLUID_SIM_N_GRID_CELLS_X * FLUID_SIM_N_GRID_CELLS_Y * FLUID_SIM_N_GRID_CELLS_Z];
 int fluid_sim_grid[N_FLUID_SIM_PARTICLES];
 
-//                                      SPAWNING PARTICLES BOX
-vec3 spawn_box_pos = {0,-20,0};
-vec3 spawn_box_dims = {40,10,5};
-
 fluid_sim_parameters fluid_sim_params;
-
-
+fluid_render_paramters fluid_render_params;
 
 //                                        SCENE FUNCTIONS
 //                                             SETUP
 
-static void setup_data(){
-
+static void setup_fluid_sim_data(){
     //                                  INTITALIZE FLUID SIM PARAMS
     
     // BOUNDARIES
@@ -159,14 +130,24 @@ static void setup_data(){
     fluid_sim_params.velocities = &fluid_particle_velocities[0];
     fluid_sim_params.densities = &fluid_particle_densities[0];
     fluid_sim_params.pressures = &fluid_particle_pressures[0];
-    
-    // --------- OTHER
-    
+
     // ALL PARTICLES
     setup_particle_positions_in_box(&fluid_sim_params);
     setup_particle_velocities(&fluid_sim_params);
     setup_particle_densities(&fluid_sim_params);
     setup_sim_grid(&fluid_sim_params);
+}
+
+static void setup_fluid_render_data(){
+    
+    // the only thing the user should have to manuallyy set is the rendering radius of particles
+    // the rest is set up by fluid_renderer_setup()
+    fluid_render_params.render_radius = fluid_particle_render_radius;
+    
+}
+
+static void setup_data(){
+    
 
     // ONE PARTICLE
     fluid_particle_n_vertices = get_prim_cube_n_vertices();
@@ -184,16 +165,17 @@ static void setup_data(){
     fluid_sim_bounding_indices = malloc(fluid_sim_bounding_n_indices * sizeof(unsigned int));
     get_prim_rectangle(fluid_sim_bounding_vertices, fluid_sim_bounding_indices, bound_dims[0], bound_dims[2], bound_dims[1]);
 
-    
+    setup_fluid_sim_data();
+    setup_fluid_render_data();
 
 }
 
-static void pass_data_to_fluid_renderer(){
+/* static void pass_data_to_fluid_renderer(){
     fluid_renderer_pass_bounding_data(fluid_sim_bounding_vertices, fluid_sim_bounding_n_vertices, fluid_sim_bounding_indices, fluid_sim_bounding_n_indices);
     fluid_renderer_pass_one_particle_data(fluid_particle_vertices, fluid_particle_n_vertices, fluid_particle_indices, fluid_particle_n_indices);
-}
+} */
 
-//                                      SCENE SETUP AND LOOP
+//                         -------------------      SCENE SETUP AND LOOP       --------------------
 void fluid_test_scene_setup(GLFWwindow* window){
     // DATA
     setup_data();
@@ -203,8 +185,8 @@ void fluid_test_scene_setup(GLFWwindow* window){
     camera_setup(&camera_1);
 
     // FLUID RENDERER
-    pass_data_to_fluid_renderer();
-    fluid_renderer_setup(&fluid_sim_params);
+    //pass_data_to_fluid_renderer();
+    fluid_renderer_setup(&fluid_render_params, &fluid_sim_params);
     
     
     glEnable(GL_BLEND);
@@ -233,10 +215,10 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
     
     // FLUID RENDERER
     // DRAW BOUNDING
-    fluid_renderer_loop_draw_bounding(camera_1.view, camera_1.projection, &fluid_sim_params);
+    fluid_renderer_loop_draw_bounding(&camera_1, &fluid_render_params, &fluid_sim_params);
 
     // DRAW PARTICLES
-    fluid_renderer_loop_draw_fluid_particles(camera_1.view, camera_1.projection, fluid_particle_render_radius, &fluid_sim_params);
+    fluid_renderer_loop_draw_fluid_particles(&camera_1, &fluid_render_params, &fluid_sim_params);
 
 }   
 
