@@ -21,7 +21,7 @@ int main(){
     //print_yes_shaders();
     //print_lmao();
 
-
+    //printf("attrib max vertex: %d\n", GL_MAX_VERTEX_ATTRIBS);
     // random testing ---------
 
     /* int grid[10] = {0,1,2,3,4,5,6,7,8,9};

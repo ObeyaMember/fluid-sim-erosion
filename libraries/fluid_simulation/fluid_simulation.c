@@ -185,21 +185,33 @@ static void update_sim_pressure_at_particle_simple(fluid_sim_parameters* sim_par
 }
 
 static void update_sim_grid(fluid_sim_parameters* sim_params){
+    
     // UPDATE CELL IDX FOR EACH PARTICLE
     for (int i = 0; i < sim_params->n_particles; i += 1){
         sim_params->grid_particle_cells[i] = particle_to_cell(sim_params, i);
     }
     
+    // RESET GRID
+    for (int i = 0; i < sim_params->n_grid_cells_total; i += 1){
+        sim_params->grid_cells_num_partciles_count[i] = 0;
+        sim_params->grid_cells_num_particles_prefix_sums[i] = 0;
+    }
+
     // UPDATE PREFIX SUMS
     // first just count cell occurences
     for (int i = 0; i < sim_params->n_particles; i += 1){
+        // For some reason ts line is on its own source of segfault when closing program aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaah
+        sim_params->grid_cells_num_partciles_count[sim_params->grid_particle_cells[i]] += 1;
         sim_params->grid_cells_num_particles_prefix_sums[sim_params->grid_particle_cells[i]] += 1;
+        
     }
-
+    //printf("count: \n");
+    //print_int_array(sim_params->grid_cells_num_partciles_count, sim_params->n_grid_cells_total);
     // then compute prefix sums
     for (int i = 1; i < sim_params->n_grid_cells_total; i += 1){
         sim_params->grid_cells_num_particles_prefix_sums[i] += sim_params->grid_cells_num_particles_prefix_sums[i-1];
     }
+    
 
     // ORDER PARTICLES BY THEIR CELL INDICES
     radix_sort_map(sim_params->grid, sim_params->grid_particle_cells, sim_params->n_particles);
@@ -428,6 +440,7 @@ static void setup_arrays(fluid_sim_parameters* sim_params){
 
     // SIM GRID
     sim_params->grid_particle_cells = malloc(sim_params->n_particles * sizeof(int));
+    sim_params->grid_cells_num_partciles_count = malloc(sim_params->n_grid_cells_total * sizeof(int));
     sim_params->grid_cells_num_particles_prefix_sums = malloc(sim_params->n_grid_cells_total * sizeof(int));
     sim_params->grid = malloc(sim_params->n_particles * sizeof(int));
 }
@@ -539,9 +552,18 @@ static void setup_sim_grid(fluid_sim_parameters* sim_params){
     int n_cells_y = sim_params->n_grid_cells_y;
     int n_cells_z = sim_params->n_grid_cells_z;
     int n_cells_total = n_cells_x*n_cells_y*n_cells_z;
+    //sim_params->n_grid_cells_total = n_cells_total;
+    printf("n_total_grid_cells_during_in: %d\n", sim_params->n_grid_cells_total);
+
 
     for (int i = 0; i < sim_params->n_particles; i += 1){
+        sim_params->grid_particle_cells[i] = i;
         sim_params->grid[i] = i;
+    }
+
+    for (int i = 0; i < sim_params->n_grid_cells_total; i += 1){
+        sim_params->grid_cells_num_partciles_count[i] = 0;
+        sim_params->grid_cells_num_particles_prefix_sums[i] = 0;
     }
 
     update_sim_grid(sim_params);
@@ -575,10 +597,12 @@ void one_sim_step(fluid_sim_parameters* sim_params){
 
     // test smoothing kernel
     // printf("smoothing kernel test: %f\n", smoothing_kernel_linear(sim_params, 1));
-
+    
     // NO SPACE PARTITIONING SIM
     if (sim_params->is_running == 1){
 
+        // SPATIAL PARTITIONING GRID
+        update_sim_grid(sim_params);
         // CALCULATE DENSITIES
         update_sim_densities(sim_params);
     
@@ -634,4 +658,10 @@ void one_sim_step(fluid_sim_parameters* sim_params){
     }
     //printf("velocities[0][1]: %f\n", velocities[0][1]);
 
+}
+
+// END SIM
+void fluid_sim_end(fluid_sim_parameters* sim_params){
+    free(sim_params->grid_cells_num_partciles_count);
+    free(sim_params->grid_cells_num_particles_prefix_sums);
 }

@@ -22,6 +22,7 @@ struct fluid_sim_parameters_s {
     int n_grid_cells_z;
     int n_grid_cells_total;
     int* grid_particle_cells; // holds cell idx of particle i at i
+    int* grid_cells_num_partciles_count;
     int* grid_cells_num_particles_prefix_sums; 
     int* grid; // holds particle indices ordered by their cell indices
     
@@ -57,5 +58,7 @@ void pause_sim(GLFWwindow* window, fluid_sim_parameters* sim_params);
 void fluid_sim_setup(fluid_sim_parameters* sim_params);
 
 void one_sim_step(fluid_sim_parameters* sim_params);
+
+void fluid_sim_end(fluid_sim_parameters* sim_params);
 
 #endif

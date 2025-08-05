@@ -41,11 +41,11 @@ fluid_sim_parameters fluid_sim_params = {
     // SPATIAL GRID
     .n_grid_cells_x = 10,
     .n_grid_cells_y = 10,
-    .n_grid_cells_z = 10,
-    .n_grid_cells_total = 1000,
+    .n_grid_cells_z = 1,
+    .n_grid_cells_total = 100,
 
     // SPAWN BOX
-    .spawn_box_pos = {0, -20, 0},
+    .spawn_box_pos = {0, 0, 0},
     .spawn_box_dims = {40, 10, 5},
     
     // PARTICLES PARAMETERS
@@ -70,10 +70,11 @@ fluid_render_paramters fluid_render_params = {
 void fluid_test_scene_setup(GLFWwindow* window){
     // CAMERA
     camera_setup(&camera_1);
-
+    
     // FLUID SIM
     fluid_sim_setup(&fluid_sim_params);
 
+    
     // FLUID RENDERER
     fluid_renderer_setup(&fluid_render_params, &fluid_sim_params);
     
@@ -81,6 +82,7 @@ void fluid_test_scene_setup(GLFWwindow* window){
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    
 }
 
 void fluid_test_scene_main_loop(GLFWwindow* window){
@@ -104,18 +106,26 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
     camera_loop(window, &camera_1, &mouse_x, &mouse_y, delta_time);
     
     //  FLUID RENDERER
-    // DRAW BOUNDING
+    // draw bounding
     fluid_renderer_loop_draw_bounding(&camera_1, &fluid_render_params, &fluid_sim_params);
 
-    // DRAW PARTICLES
+    // draw particles
     fluid_renderer_loop_draw_fluid_particles(&camera_1, &fluid_render_params, &fluid_sim_params);
     
+    // draw grid used cells
+    fluid_renderer_loop_draw_sim_grid(&camera_1, &fluid_render_params, &fluid_sim_params);
+
+    //printf("n_total_grid_cells_x_during: %f\n", fluid_sim_params.n_grid_cells_x);
+    // ---------------------------tests------------------------------------------------
     //printf("----------postions:\n");
     //print_vec3_array(fluid_sim_params.positions, fluid_sim_params.n_particles);
     //printf("----------pressures:\n");
     //print_float_array(fluid_sim_params.pressures, fluid_sim_params.n_particles);
+    // --------------------------------------------------------------------------------
 }   
 
 void fluid_test_scene_end(GLFWwindow* window){
     // DO FREE FLUID SIM AND RENDER
+    fluid_sim_end(&fluid_sim_params);
+    printf("aaa\n");
 }
