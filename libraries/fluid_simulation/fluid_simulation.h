@@ -54,11 +54,7 @@ struct fluid_sim_parameters_s {
 typedef struct fluid_sim_parameters_s fluid_sim_parameters; 
 
 void pause_sim(GLFWwindow* window, fluid_sim_parameters* sim_params);
-
-void setup_particle_positions_in_box(fluid_sim_parameters* sim_params);
-void setup_particle_velocities(fluid_sim_parameters* sim_params);
-void setup_particle_densities(fluid_sim_parameters* sim_params);
-void setup_sim_grid(fluid_sim_parameters* sim_params);
+void fluid_sim_setup(fluid_sim_parameters* sim_params);
 
 void one_sim_step(fluid_sim_parameters* sim_params);
 

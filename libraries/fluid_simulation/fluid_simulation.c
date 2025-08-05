@@ -419,6 +419,18 @@ static void get_pressure_force_simple(fluid_sim_parameters* sim_params, int part
 }
 
 //                                               SETUP FUNCTIONS
+static void setup_arrays(fluid_sim_parameters* sim_params){
+    // SIM STATE
+    sim_params->positions = malloc(sim_params->n_particles * sizeof(vec3));
+    sim_params->velocities = malloc(sim_params->n_particles * sizeof(vec3));
+    sim_params->densities = malloc(sim_params->n_particles * sizeof(float));
+    sim_params->pressures = malloc(sim_params->n_particles * sizeof(float));
+
+    // SIM GRID
+    sim_params->grid_particle_cells = malloc(sim_params->n_particles * sizeof(int));
+    sim_params->grid_cells_num_particles_prefix_sums = malloc(sim_params->n_grid_cells_total * sizeof(int));
+    sim_params->grid = malloc(sim_params->n_particles * sizeof(int));
+}
 
 static void setup_particle_positions_in_box_test(fluid_sim_parameters* sim_params){
     vec3 bound_dims;
@@ -468,8 +480,8 @@ static void setup_particle_positions_in_box_test(fluid_sim_parameters* sim_param
     
 }
 
-void setup_particle_positions_in_box(fluid_sim_parameters* sim_params){
-    /* vec3 spawn_box_pos;
+static void setup_particle_positions_in_box(fluid_sim_parameters* sim_params){
+    vec3 spawn_box_pos;
     vec3 spawn_box_dims;
     glm_vec3_copy(sim_params->spawn_box_pos, spawn_box_pos);
     glm_vec3_copy(sim_params->spawn_box_dims, spawn_box_dims);
@@ -491,9 +503,9 @@ void setup_particle_positions_in_box(fluid_sim_parameters* sim_params){
         vec3 to_add_pos = {x, y, z};
         glm_vec3_add(start_pos, to_add_pos, sim_params->positions[i]);
         
-    } */
+    }
 
-    setup_particle_positions_in_box_test(sim_params);
+    //setup_particle_positions_in_box_test(sim_params);
     
     update_sim_densities(sim_params);
     
@@ -501,7 +513,7 @@ void setup_particle_positions_in_box(fluid_sim_parameters* sim_params){
 
 }
 
-void setup_particle_velocities(fluid_sim_parameters* sim_params){
+static void setup_particle_velocities(fluid_sim_parameters* sim_params){
     for (int i = 0; i < sim_params->n_particles; i += 1){
         vec3 start_vel = {-10,-2,0};
         glm_vec3_copy(start_vel, sim_params->velocities[i]);
@@ -509,14 +521,14 @@ void setup_particle_velocities(fluid_sim_parameters* sim_params){
     }
 }
 
-void setup_particle_densities(fluid_sim_parameters* sim_params){
+static void setup_particle_densities(fluid_sim_parameters* sim_params){
     for (int i = 0; i < sim_params->n_particles; i += 1){
         sim_params->densities[i] = sim_params->reference_density;
     }
 }
 
 // assumes postions have already been set up
-void setup_sim_grid(fluid_sim_parameters* sim_params){
+static void setup_sim_grid(fluid_sim_parameters* sim_params){
     int n_cells_x = sim_params->n_grid_cells_x;
     int n_cells_y = sim_params->n_grid_cells_y;
     int n_cells_z = sim_params->n_grid_cells_z;
@@ -539,6 +551,15 @@ void setup_sim_grid(fluid_sim_parameters* sim_params){
     /* printf("cells prefix sums:\n");
     print_int_array(sim_params->grid_cells_num_particles_prefix_sums, sim_params->n_grid_cells_total);
     printf("----------\n"); */
+
+}
+
+void fluid_sim_setup(fluid_sim_parameters* sim_params){
+    setup_arrays(sim_params);
+    setup_particle_positions_in_box(sim_params);
+    setup_particle_velocities(sim_params);
+    setup_particle_densities(sim_params);
+    setup_sim_grid(sim_params);
 
 }
 

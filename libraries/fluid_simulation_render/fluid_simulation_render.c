@@ -1,44 +1,5 @@
 #include "fluid_simulation_render.h"
 
-/* //                                                              DATA
-// ONE PARTICLE
-static float* fluid_particle_vertices; 
-static int fluid_particle_n_vertices;
-
-static unsigned int* fluid_particle_indices;
-static int fluid_particle_n_indices;
-
-// ALL PARTICLES
-int n_particles = 0;
- 
- 
-// SIM BOUNDING
-static float* fluid_sim_bounding_vertices;
-static int fluid_sim_bounding_n_vertices;
- 
-static unsigned int* fluid_sim_bounding_indices;
-static int fluid_sim_bounding_n_indices;
-
-//                                                  SHADERS AND SHADER PROGRAMS
-unsigned int particle_vertex_shader, particle_fragment_shader;
-unsigned int particle_shader_program;
-
-unsigned int bounding_vertex_shader, bounding_fragment_shader;
-unsigned int bounding_shader_program;
-
-
-//                                                              BUFFERS
-static unsigned int fluid_particle_vertices_VBO, fluid_particles_pos_VBO, fluid_particles_densities_VBO, fluid_particles_pressures_VBO;
-static unsigned int VAO;
-static unsigned int fluid_particle_IBO;
- 
-static unsigned int fluid_sim_bounding_vertices_VBO;
-static unsigned int fluid_sim_bounding_IBO;
-
- */
-// MAKE A STRUCT FOR THESE PARAMS AT SOME POINT - too lazy rn
-
-
 //                                                                  SETUP
 
 // NEED TO PASS SHAPES DATA
