@@ -49,7 +49,7 @@ fluid_sim_parameters fluid_sim_params = {
     .spawn_box_dims = {40, 10, 5},
     
     // PARTICLES PARAMETERS
-    .n_particles = 7,
+    .n_particles = 500,
     .grav_scale = 10.0,
     .particle_mass = 1.0,
     .particle_radius = 5.0,
@@ -110,8 +110,12 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
     // DRAW PARTICLES
     fluid_renderer_loop_draw_fluid_particles(&camera_1, &fluid_render_params, &fluid_sim_params);
     
+    //printf("----------postions:\n");
+    //print_vec3_array(fluid_sim_params.positions, fluid_sim_params.n_particles);
+    //printf("----------pressures:\n");
+    //print_float_array(fluid_sim_params.pressures, fluid_sim_params.n_particles);
 }   
 
 void fluid_test_scene_end(GLFWwindow* window){
-    // DO FREE FLUID SEEM AND RENDER
+    // DO FREE FLUID SIM AND RENDER
 }

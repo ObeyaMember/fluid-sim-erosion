@@ -30,9 +30,9 @@ static int particle_to_cell(fluid_sim_parameters* sim_params, int particle_idx){
     float grid_cell_length = sim_params->bound_dims[0] / (float) sim_params->n_grid_cells_x;
     float grid_cell_height = sim_params->bound_dims[1] / (float) sim_params->n_grid_cells_y;
     float grid_cell_width = sim_params->bound_dims[2] / (float) sim_params->n_grid_cells_z;
-    printf("grid_cell_length: %f\n", grid_cell_length);
+    /* printf("grid_cell_length: %f\n", grid_cell_length);
     printf("grid_cell_height: %f\n", grid_cell_height);
-    printf("grid_cell_width: %f\n", grid_cell_width);
+    printf("grid_cell_width: %f\n", grid_cell_width); */
 
     vec3 p_pos;
     glm_vec3_copy(sim_params->positions[particle_idx], p_pos);
@@ -527,6 +527,12 @@ static void setup_particle_densities(fluid_sim_parameters* sim_params){
     }
 }
 
+static void setup_particle_pressures(fluid_sim_parameters* sim_params){
+    for (int i = 0; i < sim_params->n_particles; i += 1){
+        sim_params->pressures[i] = 0;
+    }
+}
+
 // assumes postions have already been set up
 static void setup_sim_grid(fluid_sim_parameters* sim_params){
     int n_cells_x = sim_params->n_grid_cells_x;
@@ -540,13 +546,13 @@ static void setup_sim_grid(fluid_sim_parameters* sim_params){
 
     update_sim_grid(sim_params);
     
-    printf("grid:\n");
+    /* printf("grid:\n");
     print_int_array(sim_params->grid, sim_params->n_particles);
     printf("----------\n");
 
     printf("particle_cells:\n");
     print_int_array(sim_params->grid_particle_cells, sim_params->n_particles);
-    printf("----------\n");
+    printf("----------\n"); */
 
     /* printf("cells prefix sums:\n");
     print_int_array(sim_params->grid_cells_num_particles_prefix_sums, sim_params->n_grid_cells_total);
@@ -559,6 +565,7 @@ void fluid_sim_setup(fluid_sim_parameters* sim_params){
     setup_particle_positions_in_box(sim_params);
     setup_particle_velocities(sim_params);
     setup_particle_densities(sim_params);
+    setup_particle_pressures(sim_params);
     setup_sim_grid(sim_params);
 
 }

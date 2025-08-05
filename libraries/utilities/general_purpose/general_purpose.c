@@ -6,6 +6,18 @@ void print_int_array(int* array, int array_size){
     }
 }
 
+void print_float_array(float* array, int array_size){
+    for (int i = 0; i < array_size; i += 1){
+        printf("array[%d]: %f\n", i, array[i]);
+    }
+}
+
+void print_vec3_array(vec3* array, int array_size){
+    for (int i = 0; i < array_size; i += 1){
+        printf("vec3_arr[%d]: (%f, %f, %f)\n", i, array[i][0], array[i][1], array[i][2]);
+    }
+}
+
 int get_max_int_array(int* array, int array_size){
     int max = INT_MIN;
     for (int i = 0; i < array_size; i += 1){

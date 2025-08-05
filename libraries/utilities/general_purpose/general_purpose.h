@@ -12,6 +12,8 @@
 #endif
 
 void print_int_array(int* array, int array_size);
+void print_float_array(float* array, int array_size);
+void print_vec3_array(vec3* array, int array_size);
 int get_max_int_array(int* array, int array_size);
 void radix_sort(int* input, int input_size);
 void radix_sort_max_known(int* input, int input_size, int max);
