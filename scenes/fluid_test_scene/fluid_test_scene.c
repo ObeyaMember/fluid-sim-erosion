@@ -36,16 +36,16 @@ fluid_sim_parameters fluid_sim_params = {
     .bound_pos = {0,0,0},
     .bound_dims = {40, 50, 5},
     .out_of_bounds_stiffness = 500,
-    .out_of_bounds_bounce_damp = 0.0,
+    .out_of_bounds_bounce_damp = 0.05,
     
     // SPATIAL GRID
     .n_grid_cells_x = 10,
     .n_grid_cells_y = 10,
     .n_grid_cells_z = 1,
-    .n_grid_cells_total = 100,
+    .n_grid_cells_total = 1000, // doesn't need to be hand stated
 
     // SPAWN BOX
-    .spawn_box_pos = {0, 0, 0},
+    .spawn_box_pos = {0, -10, 0},
     .spawn_box_dims = {40, 10, 5},
     
     // PARTICLES PARAMETERS
@@ -56,7 +56,7 @@ fluid_sim_parameters fluid_sim_params = {
     .stiffness_k = 20,
     .stiffness_gamma = 3.0,
     .reference_density = 0.05,
-    .air_drag = 0.01
+    .air_drag = 0.005
 };
 fluid_render_paramters fluid_render_params = {
     .render_radius = 0.5
@@ -113,7 +113,7 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
     fluid_renderer_loop_draw_fluid_particles(&camera_1, &fluid_render_params, &fluid_sim_params);
     
     // draw grid used cells
-    fluid_renderer_loop_draw_sim_grid(&camera_1, &fluid_render_params, &fluid_sim_params);
+    //fluid_renderer_loop_draw_sim_grid(&camera_1, &fluid_render_params, &fluid_sim_params);
 
     //printf("n_total_grid_cells_x_during: %f\n", fluid_sim_params.n_grid_cells_x);
     // ---------------------------tests------------------------------------------------

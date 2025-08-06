@@ -22,7 +22,7 @@ void pause_sim(GLFWwindow* window, fluid_sim_parameters* sim_params){
     }
 }
 
-static int particle_to_cell(fluid_sim_parameters* sim_params, int particle_idx){
+static int pos_to_cell(fluid_sim_parameters* sim_params, vec3 pos){
     int n_grid_cells_x = sim_params->n_grid_cells_x;
     int n_grid_cells_y = sim_params->n_grid_cells_y;
     int n_grid_cells_z = sim_params->n_grid_cells_z;
@@ -35,7 +35,7 @@ static int particle_to_cell(fluid_sim_parameters* sim_params, int particle_idx){
     printf("grid_cell_width: %f\n", grid_cell_width); */
 
     vec3 p_pos;
-    glm_vec3_copy(sim_params->positions[particle_idx], p_pos);
+    glm_vec3_copy(pos, p_pos);
 
     vec3 bound_pos;
     glm_vec3_copy(sim_params->bound_pos, bound_pos);
@@ -89,6 +89,10 @@ static int particle_to_cell(fluid_sim_parameters* sim_params, int particle_idx){
     // ----- space hashing formula
     int cell_idx = cell_z*n_grid_cells_y*n_grid_cells_x + cell_y*n_grid_cells_x + cell_x;
     return cell_idx;
+}
+
+static void get_needed_cells_from_pos(fluid_sim_parameters* sim_params, vec3 pos, int* needed_cells){
+    
 }
 
 //                                              SMOOTHING KERNELS
@@ -147,7 +151,7 @@ static void update_sim_densities(fluid_sim_parameters* sim_params){
         }
         
         //printf("density[%d]: %f\n", particle_idx, sim_params->densities[particle_idx]);
-        
+       
 
     }
 
@@ -157,6 +161,36 @@ static void update_sim_densities(fluid_sim_parameters* sim_params){
     //printf("density[0]: %f\n", sim_params->densities[0]);
     //printf("density[1]: %f\n", sim_params->densities[1]);
     //printf("density[556]: %f\n", sim_params->densities[556]);   
+}
+
+static float get_density_at_particle_at_cell(fluid_sim_parameters* sim_params, int particle_idx, int cell_idx){
+    float res_density = 0.0;
+    int start_grid_idx = 0;
+    if (cell_idx == 0){
+        start_grid_idx = 0;
+    }else {
+        start_grid_idx = sim_params->grid_cells_num_particles_prefix_sums[cell_idx-1];
+    }
+
+    for (int i = 0; i < sim_params->grid_cells_num_partciles_count[cell_idx]; i += 1){
+        int p_idx = sim_params->grid[start_grid_idx + i];
+        float pairwise_dist = glm_vec3_distance(sim_params->positions[particle_idx], sim_params->positions[p_idx]);
+        res_density += sim_params->particle_mass * smoothing_kernel_cubic(sim_params, pairwise_dist);
+    }
+    
+
+    return res_density;
+}
+
+static void update_sim_densities_at_particle_partitioned(fluid_sim_parameters* sim_params, int particle_idx, int* needed_cells){
+    sim_params->densities[particle_idx] = 0.0;
+
+    for (int i = 0; i < 27; i += 1){
+        if (needed_cells[i] != -1){
+            sim_params->densities[particle_idx] += get_density_at_particle_at_cell(sim_params, particle_idx, needed_cells[i]);
+        }
+    }
+
 }
 
 static void update_sim_pressure_at_particle(fluid_sim_parameters* sim_params, int particle_idx){
@@ -188,7 +222,7 @@ static void update_sim_grid(fluid_sim_parameters* sim_params){
     
     // UPDATE CELL IDX FOR EACH PARTICLE
     for (int i = 0; i < sim_params->n_particles; i += 1){
-        sim_params->grid_particle_cells[i] = particle_to_cell(sim_params, i);
+        sim_params->grid_particle_cells[i] = pos_to_cell(sim_params, sim_params->positions[i]);
     }
     
     // RESET GRID
@@ -201,7 +235,7 @@ static void update_sim_grid(fluid_sim_parameters* sim_params){
     // first just count cell occurences
     for (int i = 0; i < sim_params->n_particles; i += 1){
         // For some reason ts line is on its own source of segfault when closing program aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaah
-        printf("grid_particle_cells[%d]: %d\n", i, sim_params->grid_particle_cells[i]);
+        //printf("grid_particle_cells[%d]: %d\n", i, sim_params->grid_particle_cells[i]);
         sim_params->grid_cells_num_partciles_count[sim_params->grid_particle_cells[i]] += 1;
         sim_params->grid_cells_num_particles_prefix_sums[sim_params->grid_particle_cells[i]] += 1;
         
@@ -431,6 +465,68 @@ static void get_pressure_force_simple(fluid_sim_parameters* sim_params, int part
 
 }
 
+static void get_pressure_force_simple_at_particle_at_cell(fluid_sim_parameters* sim_params, int particle_idx, int cell_idx, vec3 dest_force){
+    vec3 res_pressure_force;
+    glm_vec3_zero(res_pressure_force);
+    int start_grid_idx = 0;
+    if (cell_idx == 0){
+        start_grid_idx = 0;
+    }else {
+        start_grid_idx = sim_params->grid_cells_num_particles_prefix_sums[cell_idx-1];
+        
+    }
+
+    for (int i = 0; i < sim_params->grid_cells_num_partciles_count[cell_idx]; i += 1){
+            
+        int p_idx = sim_params->grid[start_grid_idx + i];
+
+        vec3 pairwise_force;
+            
+        // CALCULATE KERNEL GRADIENT
+        vec3 kernel_grad;
+        vec3 dir_idx_to_i;
+        float pairwise_dist = glm_vec3_distance(sim_params->positions[particle_idx], sim_params->positions[p_idx]);
+        pairwise_dist = clamp_pairwise_dist(pairwise_dist);
+
+        float kernel_deriv = smoothing_kernel_cubic_deriv(sim_params, pairwise_dist);
+        
+        glm_vec3_sub(sim_params->positions[particle_idx], sim_params->positions[p_idx], dir_idx_to_i);
+        glm_vec3_normalize(dir_idx_to_i);
+        glm_vec3_scale(dir_idx_to_i, kernel_deriv, kernel_grad); // CHEKC THIS
+            
+        // CALCULATE PAIRWISE COEFFICIENT WITH NO GRADIENT
+        float press_idx = sim_params->pressures[particle_idx];
+        float press_i = sim_params->pressures[p_idx];
+        float density_idx = sim_params->densities[particle_idx];
+        float density_i = sim_params->densities[p_idx];
+
+        float pairwise_coeff = -press_i * sim_params->particle_mass / density_i;
+
+        // CALCULATE PAIRWISE FORCE
+        glm_vec3_scale(kernel_grad, pairwise_coeff, pairwise_force);
+
+        // ADD TO res_pressure_force 
+        glm_vec3_add(res_pressure_force, pairwise_force, res_pressure_force);
+            
+    }
+
+    glm_vec3_copy(res_pressure_force, dest_force);
+
+}
+
+static void get_pressure_force_simple_partitioned(fluid_sim_parameters* sim_params, int particle_idx, int* needed_cells, vec3 dest_force){
+    vec3 res_pressure_force;
+    glm_vec3_zero(res_pressure_force);
+
+    for (int i = 0; i < 27; i += 1){
+        vec3 pressure_at_cell;
+        get_pressure_force_simple_at_particle_at_cell(sim_params, particle_idx, needed_cells[i], pressure_at_cell);
+        glm_vec3_add(pressure_at_cell, res_pressure_force, res_pressure_force);
+    }
+
+    glm_vec3_copy(res_pressure_force, dest_force);
+}
+
 //                                               SETUP FUNCTIONS
 static void setup_arrays(fluid_sim_parameters* sim_params){
     // SIM STATE
@@ -553,7 +649,7 @@ static void setup_sim_grid(fluid_sim_parameters* sim_params){
     int n_cells_y = sim_params->n_grid_cells_y;
     int n_cells_z = sim_params->n_grid_cells_z;
     int n_cells_total = n_cells_x*n_cells_y*n_cells_z;
-    //sim_params->n_grid_cells_total = n_cells_total;
+    sim_params->n_grid_cells_total = n_cells_total;
     printf("n_total_grid_cells_during_in: %d\n", sim_params->n_grid_cells_total);
 
 
@@ -606,6 +702,12 @@ void one_sim_step(fluid_sim_parameters* sim_params){
         update_sim_grid(sim_params);
         // CALCULATE DENSITIES
         update_sim_densities(sim_params);
+
+        // CALCULATE PRESSURES
+        for (int i = 0; i < sim_params->n_particles; i += 1){
+            // CALCULATE PRESSURE AT particle_idx = i
+            update_sim_pressure_at_particle_simple(sim_params, i);
+        }
     
         for (int i = 0; i < sim_params->n_particles; i += 1){
 
@@ -631,7 +733,6 @@ void one_sim_step(fluid_sim_parameters* sim_params){
             glm_vec3_add(total_force, out_of_bounds_force, total_force);
 
             // CALCULATE PRESSURE AT particle_idx = i
-            update_sim_pressure_at_particle_simple(sim_params, i);
             //update_sim_pressure_at_particle(sim_params, i);
 
             // APPLY PRESSURE FORCE
@@ -659,6 +760,83 @@ void one_sim_step(fluid_sim_parameters* sim_params){
     }
     //printf("velocities[0][1]: %f\n", velocities[0][1]);
 
+}
+
+void one_sim_step_partitioned(fluid_sim_parameters* sim_params){
+    if (sim_params->is_running == 1){
+        update_sim_grid(sim_params);
+
+        // UPDATE ALL DENSITIES AND ALL PRESSURES
+        for (int i = 0; i < sim_params->n_particles; i += 1){
+            int needed_cells[27] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+            get_needed_cells_from_pos(sim_params, sim_params->positions[i], needed_cells);
+            
+            // UPDATE DENSITY AT PARTICLE i
+            update_sim_densities_at_particle_partitioned(sim_params, i, needed_cells);
+            
+            // UPDATE PRESSURE AT PARTICLE i
+            update_sim_pressure_at_particle_simple(sim_params, i);   
+        }
+
+        // CALCULATE PER PARTICLE FORCES AND ACC. UPDATE VEL AND POS.
+        for (int i = 0; i < sim_params->n_particles; i += 1){
+            int needed_cells[27] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+            get_needed_cells_from_pos(sim_params, sim_params->positions[i], needed_cells);
+            
+            // ------------------ forces -----------------
+            vec3 total_force;
+            vec3 accel;
+            glm_vec3_zero(total_force);
+            glm_vec3_zero(accel);
+
+            // CALCULATE PRESSURE FORCE
+            vec3 pressure_force;
+            get_pressure_force_simple_partitioned(sim_params, i, needed_cells, pressure_force);
+            
+            // APPLY GRAVITY FORCE
+            vec3 grav_force;
+            glm_vec3_scale(y_axis, -sim_params->grav_scale * sim_params->particle_mass, grav_force);
+            glm_vec3_add(total_force, grav_force, total_force);
+
+            // APPLY AIR DRAG FORCE
+            vec3 air_drag_force;
+            get_air_drag_force(sim_params, i, air_drag_force);
+            glm_vec3_add(total_force, air_drag_force, total_force);
+
+
+            // APPLY OUT OF BOUNDS FORCE 
+            vec3 out_of_bounds_force;
+            get_out_of_bounds_force(sim_params, i, out_of_bounds_force);
+            glm_vec3_add(total_force, out_of_bounds_force, total_force);
+
+            /* // CALCULATE PRESSURE AT particle_idx = i
+            //update_sim_pressure_at_particle(sim_params, i);
+
+            // APPLY PRESSURE FORCE
+            vec3 pressure_force;
+            //get_pressure_force(sim_params, i, pressure_force);
+            get_pressure_force_simple(sim_params, i, pressure_force);
+            glm_vec3_add(total_force, pressure_force, total_force);
+            //printf("Pressure force mag[%d]: %f\n", i, glm_vec3_norm(pressure_force)); */
+
+            // CALCULATE NEW ACCEL
+            glm_vec3_scale(total_force, 1.0 / sim_params->particle_mass, accel);
+
+            // CALCULATE NEW VELOCITY
+            glm_vec3_scale(accel, sim_params->delta_time, accel);
+            glm_vec3_add(sim_params->velocities[i], accel, sim_params->velocities[i]);
+
+
+            // CALCULATE NEW POSITIONS
+            vec3 delta_vel;
+            glm_vec3_scale(sim_params->velocities[i], sim_params->delta_time, delta_vel);
+            glm_vec3_add(sim_params->positions[i], delta_vel, sim_params->positions[i]);
+
+            
+            
+        }
+        
+    }
 }
 
 // END SIM
