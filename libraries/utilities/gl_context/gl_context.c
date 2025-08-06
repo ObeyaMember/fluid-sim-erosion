@@ -53,11 +53,14 @@ void while_loop_window(GLFWwindow* window){
 }
 
 void end_window(GLFWwindow* window){
+    
     glfwDestroyWindow(window);
+    
 }
 
 void end_process(){
     glfwTerminate();
+    
 }
 
 void print_yes(){

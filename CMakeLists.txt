@@ -48,6 +48,12 @@ list(APPEND SourceFiles "./libraries/fluid_simulation_render/fluid_simulation_re
 # the scene aren't required in the add_executable command because they're used directly in main file and compiler do that good
 # the others od cuz used in other libraries such as in scenes and not in main directly and compiler do that bad cuz unit or some
 
+# compile options
+add_compile_options(-fsanitize=address)
+
+# add link options
+add_link_options(-fsanitize=address)
+
 add_executable(${CMAKE_PROJECT_NAME} ${SourceFiles})
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME "TIPE.exe")
 

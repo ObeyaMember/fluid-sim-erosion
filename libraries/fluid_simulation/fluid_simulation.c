@@ -80,7 +80,7 @@ static int particle_to_cell(fluid_sim_parameters* sim_params, int particle_idx){
     float dist_to_front_bound = (bound_pos[2] - bound_dims[2]/2.0) - p_pos[2];
 
     if (dist_to_back_bound >= 0){
-        cell_z = n_grid_cells_z;
+        cell_z = n_grid_cells_z-1;
     }
     if (dist_to_front_bound >= 0){
         cell_z = 0;
@@ -201,6 +201,7 @@ static void update_sim_grid(fluid_sim_parameters* sim_params){
     // first just count cell occurences
     for (int i = 0; i < sim_params->n_particles; i += 1){
         // For some reason ts line is on its own source of segfault when closing program aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaah
+        printf("grid_particle_cells[%d]: %d\n", i, sim_params->grid_particle_cells[i]);
         sim_params->grid_cells_num_partciles_count[sim_params->grid_particle_cells[i]] += 1;
         sim_params->grid_cells_num_particles_prefix_sums[sim_params->grid_particle_cells[i]] += 1;
         
