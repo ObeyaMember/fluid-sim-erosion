@@ -3,6 +3,7 @@
 static vec3 x_axis = {1,0,0};
 static vec3 y_axis = {0,1,0};
 static vec3 z_axis = {0,0,1};
+
 static vec3 neg_x_axis = {-1,0,0};
 static vec3 neg_y_axis = {0,-1,0};
 static vec3 neg_z_axis = {0,0,-1};
@@ -20,6 +21,11 @@ void pause_sim(GLFWwindow* window, fluid_sim_parameters* sim_params){
             sim_params->is_running = 1;
         }
     }
+}
+
+static void get_grid_cell_dims(fluid_sim_parameters* sim_params, vec3 dest){
+    vec3 dims = {sim_params->bound_dims[0] / sim_params->n_grid_cells_x, sim_params->bound_dims[1] / sim_params->n_grid_cells_y, sim_params->bound_dims[2] / sim_params->n_grid_cells_z};
+    glm_vec3_copy(dims, dest);
 }
 
 static int pos_to_cell(fluid_sim_parameters* sim_params, vec3 pos){
@@ -92,7 +98,31 @@ static int pos_to_cell(fluid_sim_parameters* sim_params, vec3 pos){
 }
 
 static void get_needed_cells_from_pos(fluid_sim_parameters* sim_params, vec3 pos, int* needed_cells){
-    
+    vec3 cell_dims;
+    get_grid_cell_dims(sim_params, cell_dims);
+
+    int local_cell_idx = 0;
+    for (int x = 0; x <= 2; x += 1){
+        for (int y = 0; y <= 2; y += 1){
+            for (int z = 0; z <= 2; z += 1){
+                vec3 offset = {-1 + x, -1 + y, -1 + z};
+                offset[0] *= cell_dims[0];
+                offset[1] *= cell_dims[1];
+                offset[2] *= cell_dims[2];
+                
+                vec3 rel_pos;
+                glm_vec3_add(pos, offset, rel_pos);
+                
+                int current_rel_cell = pos_to_cell(sim_params, rel_pos);
+                if (sim_params->grid_cells_num_partciles_count[current_rel_cell] == 0){
+                    needed_cells[local_cell_idx] = -1;
+                }else {
+                    needed_cells[local_cell_idx] = current_rel_cell;
+                }
+
+            }
+        }
+    }
 }
 
 //                                              SMOOTHING KERNELS
