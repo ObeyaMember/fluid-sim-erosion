@@ -241,7 +241,7 @@ static void update_sim_densities_at_particle_partitioned(fluid_sim_parameters* s
             sim_params->densities[particle_idx] += get_density_at_particle_at_cell(sim_params, particle_idx, needed_cells[i]);
         }
     }
-    //printf("paiwise_coeff[%d]: %f\n", particle_idx, sim_params->densities[particle_idx]);
+    printf("density[%d]: %f\n", particle_idx, sim_params->densities[particle_idx]);
 
 }
 
@@ -860,8 +860,7 @@ void one_sim_step_partitioned(fluid_sim_parameters* sim_params){
             // CALCULATE PRESSURE FORCE
             vec3 pressure_force;
             get_pressure_force_simple_at_particle_partitioned(sim_params, i, needed_cells, pressure_force);
-            
-            
+            glm_vec3_add(pressure_force, total_force, total_force);            
             // APPLY GRAVITY FORCE
             vec3 grav_force;
             glm_vec3_scale(y_axis, -sim_params->grav_scale * sim_params->particle_mass, grav_force);

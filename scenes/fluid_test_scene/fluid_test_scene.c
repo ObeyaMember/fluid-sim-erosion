@@ -34,26 +34,26 @@ float mouse_y = 400;
 
 fluid_sim_parameters fluid_sim_params = {
     .bound_pos = {0,0,0},
-    .bound_dims = {40, 50, 5},
+    .bound_dims = {10, 10, 4},
     .out_of_bounds_stiffness = 500,
     .out_of_bounds_bounce_damp = 0.05,
     
     // SPATIAL GRID
-    .n_grid_cells_x = 10,
-    .n_grid_cells_y = 10,
-    .n_grid_cells_z = 3,
+    .n_grid_cells_x = 5,
+    .n_grid_cells_y = 5,
+    .n_grid_cells_z = 2,
     .n_grid_cells_total = 1000, // doesn't need to be hand stated
 
     // SPAWN BOX
-    .spawn_box_pos = {0, -10, 0},
-    .spawn_box_dims = {0.1, 0.1, 0.1},//{40, 10, 5},
+    .spawn_box_pos = {0, 0, 0},
+    .spawn_box_dims = {10, 3, 4},//{40, 10, 5},
     
     // PARTICLES PARAMETERS
-    .n_particles = 1,
+    .n_particles = 50,
     .grav_scale = 10.0,
     .particle_mass = 1.0,
-    .particle_radius = 5.0,
-    .stiffness_k = 20,
+    .particle_radius = 2.0,
+    .stiffness_k = 30,
     .stiffness_gamma = 3.0,
     .reference_density = 0.05,
     .air_drag = 0.005
