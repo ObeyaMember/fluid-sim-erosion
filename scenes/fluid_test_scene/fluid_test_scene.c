@@ -41,15 +41,15 @@ fluid_sim_parameters fluid_sim_params = {
     // SPATIAL GRID
     .n_grid_cells_x = 10,
     .n_grid_cells_y = 10,
-    .n_grid_cells_z = 1,
+    .n_grid_cells_z = 3,
     .n_grid_cells_total = 1000, // doesn't need to be hand stated
 
     // SPAWN BOX
     .spawn_box_pos = {0, -10, 0},
-    .spawn_box_dims = {40, 10, 5},
+    .spawn_box_dims = {0.1, 0.1, 0.1},//{40, 10, 5},
     
     // PARTICLES PARAMETERS
-    .n_particles = 500,
+    .n_particles = 1,
     .grav_scale = 10.0,
     .particle_mass = 1.0,
     .particle_radius = 5.0,
@@ -100,7 +100,8 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
     // NEXT SIM STEP
     fluid_sim_params.delta_time = delta_time;
     pause_sim(window, &fluid_sim_params);
-    one_sim_step(&fluid_sim_params);
+    //one_sim_step(&fluid_sim_params);
+    one_sim_step_partitioned(&fluid_sim_params);
 
     // CAMERA
     camera_loop(window, &camera_1, &mouse_x, &mouse_y, delta_time);
@@ -113,7 +114,7 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
     fluid_renderer_loop_draw_fluid_particles(&camera_1, &fluid_render_params, &fluid_sim_params);
     
     // draw grid used cells
-    //fluid_renderer_loop_draw_sim_grid(&camera_1, &fluid_render_params, &fluid_sim_params);
+    fluid_renderer_loop_draw_sim_grid(&camera_1, &fluid_render_params, &fluid_sim_params);
 
     //printf("n_total_grid_cells_x_during: %f\n", fluid_sim_params.n_grid_cells_x);
     // ---------------------------tests------------------------------------------------

@@ -58,6 +58,7 @@ void pause_sim(GLFWwindow* window, fluid_sim_parameters* sim_params);
 void fluid_sim_setup(fluid_sim_parameters* sim_params);
 
 void one_sim_step(fluid_sim_parameters* sim_params);
+void one_sim_step_partitioned(fluid_sim_parameters* sim_params);
 
 void fluid_sim_end(fluid_sim_parameters* sim_params);
 

@@ -1,5 +1,9 @@
 #include "general_purpose.h"
 
+void print_vec3(vec3 v){
+    printf("vec3(%f, %f, %f)\n", v[0], v[1], v[2]);
+}
+
 void print_int_array(int* array, int array_size){
     for (int i = 0; i < array_size; i += 1){
         printf("array[%d]: %d\n", i, array[i]);

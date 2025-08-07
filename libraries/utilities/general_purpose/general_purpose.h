@@ -11,6 +11,7 @@
 
 #endif
 
+void print_vec3(vec3 v);
 void print_int_array(int* array, int array_size);
 void print_float_array(float* array, int array_size);
 void print_vec3_array(vec3* array, int array_size);
