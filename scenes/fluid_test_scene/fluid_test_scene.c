@@ -31,8 +31,8 @@ float mouse_x = 400;
 float mouse_y = 400;
 
 //                                          DATA
-
-fluid_sim_parameters fluid_sim_params = {
+// FLUID SIM 1
+fluid_sim_parameters fluid_sim_params_1 = {
     .bound_pos = {0,0,0},
     .bound_dims = {10, 10, 4},
     .out_of_bounds_stiffness = 500,
@@ -58,10 +58,40 @@ fluid_sim_parameters fluid_sim_params = {
     .reference_density = 0.05,
     .air_drag = 0.005
 };
-fluid_render_paramters fluid_render_params = {
+fluid_render_paramters fluid_render_params_1 = {
     .render_radius = 0.5
 };
 
+// FLUID SIM 2
+fluid_sim_parameters fluid_sim_params_2 = {
+    .bound_pos = {15,0,0},
+    .bound_dims = {10, 10, 4},
+    .out_of_bounds_stiffness = 500,
+    .out_of_bounds_bounce_damp = 0.05,
+    
+    // SPATIAL GRID
+    .n_grid_cells_x = 5,
+    .n_grid_cells_y = 5,
+    .n_grid_cells_z = 2,
+    .n_grid_cells_total = 1000, // doesn't need to be hand stated
+
+    // SPAWN BOX
+    .spawn_box_pos = {15, 0, 0},
+    .spawn_box_dims = {10, 3, 4},//{40, 10, 5},
+    
+    // PARTICLES PARAMETERS
+    .n_particles = 50,
+    .grav_scale = 10.0,
+    .particle_mass = 1.0,
+    .particle_radius = 2.0,
+    .stiffness_k = 30,
+    .stiffness_gamma = 3.0,
+    .reference_density = 0.05,
+    .air_drag = 0.005
+};
+fluid_render_paramters fluid_render_params_2 = {
+    .render_radius = 0.5
+};
 //                                        SCENE FUNCTIONS
 //                                             SETUP
 
@@ -71,12 +101,19 @@ void fluid_test_scene_setup(GLFWwindow* window){
     // CAMERA
     camera_setup(&camera_1);
     
-    // FLUID SIM
-    fluid_sim_setup(&fluid_sim_params);
-
+    //  FLUID SIM 1
+    // fluid sim
+    fluid_sim_setup(&fluid_sim_params_1);
     
-    // FLUID RENDERER
-    fluid_renderer_setup(&fluid_render_params, &fluid_sim_params);
+    // fluid render
+    fluid_renderer_setup(&fluid_render_params_1, &fluid_sim_params_1);
+
+    //  FLUID SIM 2
+    // fluid sim
+    fluid_sim_setup(&fluid_sim_params_2);
+    
+    // fluid render
+    fluid_renderer_setup(&fluid_render_params_2, &fluid_sim_params_2);
     
     // SOMETHING
     glEnable(GL_BLEND);
@@ -96,37 +133,55 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
     glClearColor(0.3f, 0.4f, 0.6f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //  FLUID SIM
-    // NEXT SIM STEP
-    fluid_sim_params.delta_time = delta_time;
-    pause_sim(window, &fluid_sim_params);
-    //one_sim_step(&fluid_sim_params);
-    one_sim_step_partitioned(&fluid_sim_params);
+    //  FLUID SIM 1
+    // next sim step
+    fluid_sim_params_1.delta_time = delta_time;
+    pause_sim(window, &fluid_sim_params_1);
+    //one_sim_step(&fluid_sim_params_1);
+    one_sim_step_partitioned(&fluid_sim_params_1);
 
-    // CAMERA
-    camera_loop(window, &camera_1, &mouse_x, &mouse_y, delta_time);
-    
-    //  FLUID RENDERER
+    //  fluid renderer
     // draw bounding
-    fluid_renderer_loop_draw_bounding(&camera_1, &fluid_render_params, &fluid_sim_params);
+    fluid_renderer_loop_draw_bounding(&camera_1, &fluid_render_params_1, &fluid_sim_params_1);
 
     // draw particles
-    fluid_renderer_loop_draw_fluid_particles(&camera_1, &fluid_render_params, &fluid_sim_params);
+    fluid_renderer_loop_draw_fluid_particles(&camera_1, &fluid_render_params_1, &fluid_sim_params_1);
     
     // draw grid used cells
-    fluid_renderer_loop_draw_sim_grid(&camera_1, &fluid_render_params, &fluid_sim_params);
+    fluid_renderer_loop_draw_sim_grid(&camera_1, &fluid_render_params_1, &fluid_sim_params_1);
 
-    //printf("n_total_grid_cells_x_during: %f\n", fluid_sim_params.n_grid_cells_x);
+    //  FLUID SIM 2
+    // next sim step
+    fluid_sim_params_2.delta_time = delta_time;
+    pause_sim(window, &fluid_sim_params_2);
+    one_sim_step(&fluid_sim_params_2);
+    //one_sim_step_partitioned(&fluid_sim_params_2);
+
+    //  fluid renderer
+    // draw bounding
+    fluid_renderer_loop_draw_bounding(&camera_1, &fluid_render_params_2, &fluid_sim_params_2);
+
+    // draw particles
+    fluid_renderer_loop_draw_fluid_particles(&camera_1, &fluid_render_params_2, &fluid_sim_params_2);
+    
+    // draw grid used cells
+    fluid_renderer_loop_draw_sim_grid(&camera_1, &fluid_render_params_2, &fluid_sim_params_2);
+
+    //printf("n_total_grid_cells_x_during: %f\n", fluid_sim_params_1.n_grid_cells_x);
     // ---------------------------tests------------------------------------------------
     //printf("----------postions:\n");
-    //print_vec3_array(fluid_sim_params.positions, fluid_sim_params.n_particles);
+    //print_vec3_array(fluid_sim_params_1.positions, fluid_sim_params_1.n_particles);
     //printf("----------pressures:\n");
-    //print_float_array(fluid_sim_params.pressures, fluid_sim_params.n_particles);
+    //print_float_array(fluid_sim_params_1.pressures, fluid_sim_params_1.n_particles);
     // --------------------------------------------------------------------------------
+    
+    // CAMERA 1
+    camera_loop(window, &camera_1, &mouse_x, &mouse_y, delta_time);
 }   
 
 void fluid_test_scene_end(GLFWwindow* window){
     // DO FREE FLUID SIM AND RENDER
-    fluid_sim_end(&fluid_sim_params);
+    fluid_sim_end(&fluid_sim_params_1);
+    fluid_sim_end(&fluid_sim_params_2);
     printf("aaa\n");
 }
