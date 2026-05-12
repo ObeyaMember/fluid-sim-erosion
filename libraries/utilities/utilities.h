@@ -8,5 +8,8 @@
 #include "primitives/primitives.h"
 #include "transforms/transforms.h"
 #include "general_purpose/general_purpose.h"
+#include "heightmap/heightmap.h"
+#include "mesh/mesh.h"
+#include "mesh_renderer/mesh_renderer.h"
 
 #endif

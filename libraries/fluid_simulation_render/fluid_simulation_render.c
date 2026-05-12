@@ -373,3 +373,11 @@ void fluid_renderer_loop_draw_sim_grid(camera_3d* camera, fluid_render_paramters
     //glDrawElementsInstanced(GL_TRIANGLES, render_params->)
 }
 
+void fluid_renderer_end(fluid_render_paramters* render_params){
+    free(render_params->fluid_particle_vertices);
+    free(render_params->fluid_particle_indices);
+    free(render_params->fluid_sim_bounding_vertices);
+    free(render_params->fluid_sim_bounding_indices);
+    free(render_params->fluid_sim_grid_cell_vertices);
+    free(render_params->fluid_sim_grid_cell_indices);
+}

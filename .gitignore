@@ -68,6 +68,10 @@ _deps
 build
 out
 
+### Other ###
+asan_logs
+
+
 ### CMake Patch ###
 CMakeUserPresets.json
 

@@ -1,0 +1,46 @@
+MONDAY
+- Heightmaps and Terrain
+- Meshes
+- Ground / fluid collision
+- Ground affected by fluid
+TUESDAY
+- Erosion
+- Water Cycle (Evaporation + rain )
+- Improve CPU fluid sim (opposite reaction, viscosity)
+AAAH
+- GPU
+AAAAAAH
+- Find real world data (terrain evol + meteorological)
+- Compare w data
+- Comparew other programs
+
+OTHER 
+- ui?
+- k-nearest neighbors? adaptive radius?
+- better integration method than Euler?
+
+
+____________________________________
+
+DONE Mesh
+ - pos, rot, scale
+  - vertices, indices
+ - rendering options
+ - func mesh_from_terrain
+ - func update_mesh_from_terrain
+
+DONE Terrain
+ - (inworld) size x, y, z
+ - resolution x, y, z
+ - pos, rot, scale
+ - height map
+ - int*** terrain_type
+
+
+DONE   Height map
+ - resolution x, y
+ - int** data
+  - height factor
+
+Mesh renderer
+ - SHADERS

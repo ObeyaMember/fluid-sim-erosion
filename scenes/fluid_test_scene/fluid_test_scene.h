@@ -14,6 +14,8 @@
 
 #include "../../libraries/fluid_simulation/fluid_simulation.h"
 #include "../../libraries/fluid_simulation_render/fluid_simulation_render.h"
+#include "../../libraries/terrain/terrain.h"
+
 
 void fluid_test_scene_setup(GLFWwindow* window);
 void fluid_test_scene_main_loop(GLFWwindow* window);

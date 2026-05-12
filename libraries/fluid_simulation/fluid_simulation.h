@@ -9,7 +9,9 @@
 #include "..//GLFW/glfw3.h"
 #include "../utilities/utilities.h"
 
-struct fluid_sim_parameters_s {
+struct fluid_sim_parameters_s{
+    int sim_id;
+
     // BOUNDARIES
     vec3 bound_pos;
     vec3 bound_dims;
@@ -31,8 +33,15 @@ struct fluid_sim_parameters_s {
     vec3 spawn_box_pos;
     vec3 spawn_box_dims;
     
+    int positions_setup_mode; // 0: random in box (uses n_particles), 1: uniform specified number of particles per side
+    int is_frozen; // != pause -> just no movement applied
+
+    int n_particles_x; // used only for positions_setup_mode  = 1
+    int n_particles_y; // used only for positions_setup_mode  = 1  
+    int n_particles_z; // used only for positions_setup_mode  = 1  
+    
     // PARTICLE PARAMETERS
-    int n_particles;
+    int n_particles; // used only for positions_setup_mode = 0
     float particle_mass;
     float particle_radius;
     float grav_scale;
@@ -45,11 +54,14 @@ struct fluid_sim_parameters_s {
     int is_running;
     float delta_time;
     
+    
     vec3* positions;
     vec3* velocities;
     float* densities;
     float* pressures;
     
+    struct fluid_sim_parameters_s* sim_to_copy;
+
 };
 
 typedef struct fluid_sim_parameters_s fluid_sim_parameters; 

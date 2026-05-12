@@ -84,5 +84,6 @@ void fluid_renderer_setup(fluid_render_paramters* render_params, fluid_sim_param
 void fluid_renderer_loop_draw_bounding(camera_3d* camera, fluid_render_paramters* render_params, fluid_sim_parameters* sim_params);
 void fluid_renderer_loop_draw_fluid_particles(camera_3d* camera, fluid_render_paramters* render_params, fluid_sim_parameters* sim_params);
 void fluid_renderer_loop_draw_sim_grid(camera_3d* camera, fluid_render_paramters* render_params, fluid_sim_parameters* sim_params);
+void fluid_renderer_end(fluid_render_paramters* render_params);
 
 #endif
