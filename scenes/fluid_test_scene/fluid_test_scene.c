@@ -170,7 +170,7 @@ void fluid_test_scene_setup(GLFWwindow* window){
 
     //              GROUND
     // ground heightmap
-    heightmap_setup(&ground_h_map, 3, 2);
+    heightmap_setup(&ground_h_map, 2, 10);
     vec3 dome_weights = {ground_h_map.map_res_x, ground_h_map.map_res_y};
     //heightmap_from_function(dome_weights ,&ground_h_map, dome);
     heightmap_white(&ground_h_map);
@@ -185,7 +185,7 @@ void fluid_test_scene_setup(GLFWwindow* window){
     // ground mesh
 
     ground_mesh = new_mesh_from_terrain(&ground_terrain);
-    mesh_renderer_setup(&ground_m_renderer, &ground_mesh);
+    //mesh_renderer_setup(&ground_m_renderer, &ground_mesh);
 
     
     // PRINTS
@@ -310,6 +310,7 @@ void fluid_test_scene_end(GLFWwindow* window){
     fluid_sim_end(&fluid_sim_params_2);
     fluid_renderer_end(&fluid_render_params_1);
     fluid_renderer_end(&fluid_render_params_2);
-    free_terrain(&ground_terrain); // also frees heightmap
-    free_mesh(&ground_mesh);
+    free_heightmap(&ground_h_map);
+    //free_terrain(&ground_terrain); // also frees heightmap
+    //free_mesh(&ground_mesh);
 }
