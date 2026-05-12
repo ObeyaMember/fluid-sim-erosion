@@ -185,7 +185,7 @@ void fluid_test_scene_setup(GLFWwindow* window){
     // ground mesh
 
     ground_mesh = new_mesh_from_terrain(&ground_terrain);
-    //mesh_renderer_setup(&ground_m_renderer, &ground_mesh);
+    mesh_renderer_setup(&ground_m_renderer, &ground_mesh);
 
     
     // PRINTS

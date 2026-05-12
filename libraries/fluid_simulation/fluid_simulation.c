@@ -629,7 +629,7 @@ static void setup_particle_positions_in_box_uniform(fluid_sim_parameters* sim_pa
     
     int idx = 0;
     for (int x = 0; x < sim_params->n_particles_x; x += 1){
-        for (int y = 0; y < sim_params->n_particles_y; l_y += 1){
+        for (int y = 0; y < sim_params->n_particles_y; y += 1){
             for (int z = 0; z < sim_params->n_particles_z; z += 1){
                 vec3 to_add = {x * l_x, y * l_y, z * l_z};
                 glm_vec3_copy(current_pos, sim_params->positions[idx]);
@@ -680,7 +680,7 @@ static void setup_particle_positions_in_box(fluid_sim_parameters* sim_params){
 }
 
 static void setup_particle_positions_from_other_sim(fluid_sim_parameters* sim_params){
-    for (int i; i < sim_params->n_particles; i += 1){
+    for (int i = 0; i < sim_params->n_particles; i += 1){
         //printf("aa ");
         vec3 pos_idx;
         //printf("copy_n_particles: %d", (sim_params->sim_to_copy)->n_particles);
