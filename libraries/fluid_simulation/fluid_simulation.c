@@ -121,23 +121,16 @@ static void get_needed_cells_from_pos(fluid_sim_parameters* sim_params, vec3 pos
                 
                 
                 int current_rel_cell = pos_to_cell(sim_params, rel_pos);
-                int current_pos_cell = pos_to_cell(sim_params, pos);
 
-                //printf("rel_cell: %d\n", current_rel_cell);
-                //printf("pos_cell: %d\n", current_pos_cell);
-                
-
-
-                
-                if (sim_params->grid_cells_num_partciles_count[current_rel_cell] == 0){
+                if (current_rel_cell < 0 || current_rel_cell >= sim_params->n_grid_cells_total) {
                     needed_cells[local_cell_idx] = -1;
-                }else {
+                } else if (sim_params->grid_cells_num_partciles_count[current_rel_cell] == 0) {
+                    needed_cells[local_cell_idx] = -1;
+                } else {
                     needed_cells[local_cell_idx] = current_rel_cell;
-                   
                 }
-                //needed_cells[local_cell_idx] = current_rel_cell;
-                local_cell_idx += 1;
                 
+                local_cell_idx += 1;
             }
         }
     }
@@ -213,10 +206,20 @@ static float get_density_at_particle_at_cell(fluid_sim_parameters* sim_params, i
     }else {
         start_grid_idx = sim_params->grid_cells_num_particles_prefix_sums[cell_idx-1];
     }
+    int n_partcile_count_at_cell_idx = sim_params->grid_cells_num_partciles_count[cell_idx];
+    // print test
+    if (n_partcile_count_at_cell_idx >= 300 || n_partcile_count_at_cell_idx < 0){
+            printf("n_partcile_count_at_cell_idx: %d\n", n_partcile_count_at_cell_idx);
+        }
 
     for (int i = 0; i < sim_params->grid_cells_num_partciles_count[cell_idx]; i += 1){
         
         int p_idx = sim_params->grid[start_grid_idx + i];
+        // print test
+        if (particle_idx >= 300 || particle_idx < 0 || p_idx >= 300 || p_idx < 0){
+            printf("particle_idx: %d - p_idx: %d\n", particle_idx, p_idx);
+        }
+        
         float pairwise_dist = glm_vec3_distance(sim_params->positions[particle_idx], sim_params->positions[p_idx]);
         pairwise_dist = clamp_pairwise_dist(pairwise_dist);
         res_density += sim_params->particle_mass * smoothing_kernel_cubic(sim_params, pairwise_dist);
@@ -229,8 +232,10 @@ static float get_density_at_particle_at_cell(fluid_sim_parameters* sim_params, i
 
 static void update_sim_densities_at_particle_partitioned(fluid_sim_parameters* sim_params, int particle_idx, int* needed_cells){
     sim_params->densities[particle_idx] = 0.0;
+     
 
     for (int i = 0; i < 27; i += 1){
+        int needed_cells_at_i = needed_cells[i];
         if (needed_cells[i] != -1){
             sim_params->densities[particle_idx] += get_density_at_particle_at_cell(sim_params, particle_idx, needed_cells[i]);
         }
@@ -291,8 +296,8 @@ static void update_sim_grid(fluid_sim_parameters* sim_params){
             }
             
         } */
-
-        sim_params->grid_cells_num_partciles_count[sim_params->grid_particle_cells[i]] += 1;
+        int p_cells_at_i = sim_params->grid_particle_cells[i];
+        sim_params->grid_cells_num_partciles_count[p_cells_at_i] += 1;
         sim_params->grid_cells_num_particles_prefix_sums[sim_params->grid_particle_cells[i]] += 1;
         
     }
@@ -717,7 +722,7 @@ static void setup_sim_grid(fluid_sim_parameters* sim_params){
     int n_cells_z = sim_params->n_grid_cells_z;
     int n_cells_total = n_cells_x*n_cells_y*n_cells_z;
     sim_params->n_grid_cells_total = n_cells_total;
-    //printf("n_total_grid_cells_during_in: %d\n", sim_params->n_grid_cells_total);
+    printf("n_total_grid_cells: %d\n", sim_params->n_grid_cells_total);
 
 
     for (int i = 0; i < sim_params->n_particles; i += 1){
@@ -752,7 +757,12 @@ void fluid_sim_setup(fluid_sim_parameters* sim_params){
     if (sim_params->positions_setup_mode == 1){
         sim_params->n_particles = sim_params->n_particles_x * sim_params->n_particles_y * sim_params->n_particles_z;
     }
-    
+    // setup n_grid_cells
+    int n_cells_x = sim_params->n_grid_cells_x;
+    int n_cells_y = sim_params->n_grid_cells_y;
+    int n_cells_z = sim_params->n_grid_cells_z;
+    int n_cells_total = n_cells_x*n_cells_y*n_cells_z;
+    sim_params->n_grid_cells_total = n_cells_total;
     setup_arrays(sim_params);
     
     if (sim_params->positions_setup_mode == 0){
@@ -854,11 +864,14 @@ void one_sim_step_partitioned(fluid_sim_parameters* sim_params){
 
         // UPDATE ALL DENSITIES AND ALL PRESSURES
         for (int i = 0; i < sim_params->n_particles; i += 1){
+            // 27 bcs thats all the cells around a certain cell (it included)
             int needed_cells[27] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
             get_needed_cells_from_pos(sim_params, sim_params->positions[i], needed_cells);
             
             // UPDATE DENSITY AT PARTICLE i
-            update_sim_densities_at_particle_partitioned(sim_params, i, needed_cells);
+            //printf("count: \n");
+            //print_int_array(sim_params->grid_cells_num_partciles_count, sim_params->n_grid_cells_total);
+            update_sim_densities_at_particle_partitioned(sim_params, i, &needed_cells[0]);
             
             // UPDATE PRESSURE AT PARTICLE i
             update_sim_pressure_at_particle_simple(sim_params, i);   

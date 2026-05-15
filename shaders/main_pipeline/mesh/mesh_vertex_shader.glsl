@@ -2,7 +2,7 @@
 
 /* layout (location = 0) in vec3 particle_plane_ver_pos;
 layout (location = 1) in vec3 particle_pos; */
-layout (location = 2) in vec3 ver_pos;
+layout (location = 7) in vec3 ver_pos;
 
 
 uniform mat4 view;

@@ -23,8 +23,8 @@ static void setup_mesh_buffers(mesh_renderer* m_renderer, mesh* m){
     glBindBuffer(GL_ARRAY_BUFFER, m_renderer->mesh_vertices_VBO);
     glBufferData(GL_ARRAY_BUFFER, m->mesh_n_vertices*3*sizeof(float), m->mesh_vertices, GL_DYNAMIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(7);
 
     glGenBuffers(1, &m_renderer->mesh_IBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_renderer->mesh_IBO);
@@ -32,13 +32,16 @@ static void setup_mesh_buffers(mesh_renderer* m_renderer, mesh* m){
 }
 
 static void setup_mesh_VAO(mesh_renderer* m_renderer){
-    glGenVertexArrays(1, &m_renderer->VAO);
+    glGenVertexArrays(1, &(m_renderer->VAO));
     glBindVertexArray(m_renderer->VAO);
 }
 
 // FINAL SETUP
 void mesh_renderer_setup(mesh_renderer* m_renderer, mesh* m){
+    // shaders
     setup_mesh_shaders(m_renderer);
+
+    // buffers
     setup_mesh_VAO(m_renderer);
     setup_mesh_buffers(m_renderer, m);
 }   
@@ -76,7 +79,7 @@ void mesh_renderer_loop_draw_mesh(camera_3d* camera, mesh_renderer* m_renderer, 
     glBindVertexArray(m_renderer->VAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_renderer->mesh_vertices_VBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_renderer->mesh_IBO);
-    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE);
     glDrawElements(GL_TRIANGLES, m->mesh_n_indices, GL_UNSIGNED_INT, 0);
 
 }

@@ -13,6 +13,21 @@ static unsigned int prim_plane_indices[6] = {
     1, 2, 3 // second triangle
 };
 
+/* static unsigned int prim_plane_indices[6] = {
+    0, 3, 1,
+    1, 3, 2
+};
+
+static unsigned int prim_cube_indices[36] = {
+    0, 3, 1,  1, 3, 2,  // +X
+    4, 7, 0,  0, 7, 3,  // +Z
+    5, 6, 4,  4, 6, 7,  // -X
+    1, 2, 5,  5, 2, 6,  // -Z
+    2, 6, 3,  3, 6, 7,  // -Y
+    1, 5, 0,  0, 5, 4   // +Y
+}; */
+
+
 static float prim_plane_tex_coords[8] = {
     1.0, 1.0,
     1.0, 0.0,

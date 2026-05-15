@@ -1,11 +1,12 @@
 MONDAY
-- Heightmaps and Terrain
-- Meshes
+- DONE Heightmaps and Terrain
+- DONE Meshes  
+- DONE solve partitioning !!!
 - Ground / fluid collision
 - Ground affected by fluid
 TUESDAY
 - Erosion
-- Water Cycle (Evaporation + rain )
+- Water Cycle (Evaporation + rain)
 - Improve CPU fluid sim (opposite reaction, viscosity)
 AAAH
 - GPU
@@ -22,25 +23,3 @@ OTHER
 
 ____________________________________
 
-DONE Mesh
- - pos, rot, scale
-  - vertices, indices
- - rendering options
- - func mesh_from_terrain
- - func update_mesh_from_terrain
-
-DONE Terrain
- - (inworld) size x, y, z
- - resolution x, y, z
- - pos, rot, scale
- - height map
- - int*** terrain_type
-
-
-DONE   Height map
- - resolution x, y
- - int** data
-  - height factor
-
-Mesh renderer
- - SHADERS

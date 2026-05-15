@@ -17,15 +17,17 @@ mesh new_mesh_from_heightmap(heightmap* hmap, vec3 pos, vec3 dims){
     glm_vec3_copy(pos, s.pos);
     glm_vec3_copy(dims, s.dims);
     
-    float vertex_sep_x = 2.0 / ((float)res_x -1);
-    float vertex_sep_y = 2.0 / ((float)res_y -1);
+    float vertex_sep_x = (float)dims[2] / ((float)res_x -1.0);
+    float vertex_sep_y = (float)dims[0] / ((float)res_y -1.0);
+    float start_x = -(float)dims[2] / 2.0;
+    float start_y = -(float)dims[0] / 2.0;
     
 
-    for (int i = 0; i < res_x; i += 1){ // this is the good one
-        for (int j = 0; j < res_y; j += 1){ // this also the good
-            s.mesh_vertices[(j*res_x + i)*3] = vertex_sep_x * i - 1.0;
-            s.mesh_vertices[(j*res_x + i)*3 + 1] = hmap->grid[i][j]; // * hmap->height_factor;
-            s.mesh_vertices[(j*res_x + i)*3 + 2] = vertex_sep_y * j - 1.0;
+    for (int i = 0; i < res_y; i += 1){ // this is the good one
+        for (int j = 0; j < res_x; j += 1){ // this also the good
+            s.mesh_vertices[(i*res_x + j)*3 + 0] = start_y + vertex_sep_y * j;
+            s.mesh_vertices[(i*res_x + j)*3 + 1] = hmap->grid[j][i] * hmap->height_factor;
+            s.mesh_vertices[(i*res_x + j)*3 + 2] = start_x + vertex_sep_x * i;
 
             if (i < res_y - 1 && j < res_x - 1){
                 //s.mesh_indices[(i*res_x + j)*6 + 0] = (i+0)*res_x + j + 0;
@@ -36,14 +38,14 @@ mesh new_mesh_from_heightmap(heightmap* hmap, vec3 pos, vec3 dims){
                 //s.mesh_indices[(i*res_x + j)*6 + 5] = (i+1)*res_x + j + 0;
                 //printf("i am an index\n");
                 
-                s.mesh_indices[(j*res_x + i)*6 + 0] = ((j+0)*res_x + (i+0))*3;
-                s.mesh_indices[(j*res_x + i)*6 + 1] = ((j+0)*res_x + (i+1))*3;
-                s.mesh_indices[(j*res_x + i)*6 + 2] = ((j+1)*res_x + (i+1))*3;
-                s.mesh_indices[(j*res_x + i)*6 + 3] = ((j+0)*res_x + (i+0))*3;
-                s.mesh_indices[(j*res_x + i)*6 + 4] = ((j+1)*res_x + (i+0))*3;
-                s.mesh_indices[(j*res_x + i)*6 + 5] = ((j+1)*res_x + (i+1))*3;
-                printf("(i, j): %d, %d \n", i, j);
-                printf("(i*res_x + j): %d \n", i*(res_x-1) + j);
+                s.mesh_indices[(i*(res_x-1) + j)*6 + 0] = (unsigned int)((i+0)*res_x + (j+0));
+                s.mesh_indices[(i*(res_x-1) + j)*6 + 1] = (unsigned int)((i+0)*res_x + (j+1));
+                s.mesh_indices[(i*(res_x-1) + j)*6 + 2] = (unsigned int)((i+1)*res_x + (j+1));
+                s.mesh_indices[(i*(res_x-1) + j)*6 + 3] = (unsigned int)((i+0)*res_x + (j+0));
+                s.mesh_indices[(i*(res_x-1) + j)*6 + 4] = (unsigned int)((i+1)*res_x + (j+0));
+                s.mesh_indices[(i*(res_x-1) + j)*6 + 5] = (unsigned int)((i+1)*res_x + (j+1));
+                //printf("(i, j): %d, %d \n", i, j);
+                //printf("(i*res_x + j): %d \n", i*(res_x-1) + j);
                 
                 //s.mesh_indices[(i*(res_x-1) + j)*6 + 0] = 1;
                 //s.mesh_indices[(i*(res_x-1) + j)*6 + 1] = 1;
@@ -59,6 +61,8 @@ mesh new_mesh_from_heightmap(heightmap* hmap, vec3 pos, vec3 dims){
 
     return s;
 }
+
+
 
 void print_mesh_vertices(mesh* m){
     for (int i = 0; i < m->mesh_n_vertices; i += 1){
