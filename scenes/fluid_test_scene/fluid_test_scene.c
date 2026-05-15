@@ -31,6 +31,7 @@ float mouse_x = 400;
 float mouse_y = 400;
 
 //                                          DATA
+
 // FLUID SIM 1
 fluid_sim_parameters fluid_sim_params_1 = {
     
@@ -80,14 +81,14 @@ fluid_sim_parameters fluid_sim_params_2 = {
 
     // BOUNDINGD
     .bound_pos = {25,0,0},
-    .bound_dims = {20, 20, 7},
+    .bound_dims = {20, 20, 20},
     .out_of_bounds_stiffness = 500,
     .out_of_bounds_bounce_damp = 0.05,
     
     // SPATIAL GRID
-    .n_grid_cells_x = 5,
-    .n_grid_cells_y = 5,
-    .n_grid_cells_z = 2,
+    .n_grid_cells_x = 10,
+    .n_grid_cells_y = 10,
+    .n_grid_cells_z = 10,
     .n_grid_cells_total = 1000, // doesn't need to be hand stated
 
     // SPAWN BOX
@@ -100,13 +101,13 @@ fluid_sim_parameters fluid_sim_params_2 = {
     .n_particles_x = 10,
     .n_particles_y = 10,
     .n_particles_z = 10,
-    .n_particles = 300,
+    .n_particles = 1000,
     
     // PARTICLES PARAMETERS
 
     .grav_scale = 10.0,
     .particle_mass = 1.0,
-    .particle_radius = 4.0,
+    .particle_radius = 2.0,
     .stiffness_k = 30,
     .stiffness_gamma = 3.0,
     .reference_density = 0.05,
@@ -290,8 +291,14 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
     //    
         
         avg_desnsity_sim_2 += fluid_sim_params_2.densities[i];
+        //if (fluid_sim_params_2.positions[i][1] >= 9.5){
+        //    printf("idx: %d\n", i);
+        //    printf("");
+        //}
+        
     //
     }
+    //printf("---------------------------------\n");
 
     avg_desnsity_sim_1 /= (float)fluid_sim_params_1.n_particles;
     avg_desnsity_sim_2 /= (float)fluid_sim_params_2.n_particles;

@@ -55,9 +55,9 @@ static int pos_to_cell(fluid_sim_parameters* sim_params, vec3 pos){
     vec3 first_corner_pos;
     glm_vec3_sub(bound_pos, bound_dims_halved, first_corner_pos);
 
-    int cell_x = (int) ((p_pos[0] - (first_corner_pos[0])) / grid_cell_length);
-    int cell_y = (int) ((p_pos[1] - (first_corner_pos[1])) / grid_cell_height);
-    int cell_z = (int) ((p_pos[2] - (first_corner_pos[2])) / grid_cell_width);
+    int cell_x = (int)floorf(((p_pos[0] - (first_corner_pos[0])) / grid_cell_length));
+    int cell_y = (int)floorf(((p_pos[1] - (first_corner_pos[1])) / grid_cell_height));
+    int cell_z = (int)floorf(((p_pos[2] - (first_corner_pos[2])) / grid_cell_width));
 
     // ----- x
     float dist_to_right_bound = p_pos[0] - (bound_pos[0] + bound_dims[0]/2.0);
@@ -97,6 +97,13 @@ static int pos_to_cell(fluid_sim_parameters* sim_params, vec3 pos){
     return cell_idx;
 }
 
+static int contains_cell(int* cells, int count, int cell) {
+    for (int i = 0; i < count; i++) {
+        if (cells[i] == cell) return 1;
+    }
+    return 0;
+}
+
 static void get_needed_cells_from_pos(fluid_sim_parameters* sim_params, vec3 pos, int* needed_cells){
     //print_int_array(sim_params->grid_cells_num_partciles_count, sim_params->n_grid_cells_total);
     
@@ -122,7 +129,17 @@ static void get_needed_cells_from_pos(fluid_sim_parameters* sim_params, vec3 pos
                 
                 int current_rel_cell = pos_to_cell(sim_params, rel_pos);
 
+                //if (current_rel_cell < 0 || current_rel_cell >= sim_params->n_grid_cells_total) {
+                //    needed_cells[local_cell_idx] = -1;
+                //} else if (sim_params->grid_cells_num_partciles_count[current_rel_cell] == 0) {
+                //    needed_cells[local_cell_idx] = -1;
+                //} else {
+                //    needed_cells[local_cell_idx] = current_rel_cell;
+                //}
+
                 if (current_rel_cell < 0 || current_rel_cell >= sim_params->n_grid_cells_total) {
+                    needed_cells[local_cell_idx] = -1;
+                } else if (contains_cell(needed_cells, local_cell_idx, current_rel_cell)) {
                     needed_cells[local_cell_idx] = -1;
                 } else if (sim_params->grid_cells_num_partciles_count[current_rel_cell] == 0) {
                     needed_cells[local_cell_idx] = -1;
@@ -208,17 +225,17 @@ static float get_density_at_particle_at_cell(fluid_sim_parameters* sim_params, i
     }
     int n_partcile_count_at_cell_idx = sim_params->grid_cells_num_partciles_count[cell_idx];
     // print test
-    if (n_partcile_count_at_cell_idx >= 300 || n_partcile_count_at_cell_idx < 0){
-            printf("n_partcile_count_at_cell_idx: %d\n", n_partcile_count_at_cell_idx);
-        }
+    //if (n_partcile_count_at_cell_idx >= 600 || n_partcile_count_at_cell_idx < 0){
+    //        printf("n_partcile_count_at_cell_idx: %d\n", n_partcile_count_at_cell_idx);
+    //    }
 
     for (int i = 0; i < sim_params->grid_cells_num_partciles_count[cell_idx]; i += 1){
         
         int p_idx = sim_params->grid[start_grid_idx + i];
         // print test
-        if (particle_idx >= 300 || particle_idx < 0 || p_idx >= 300 || p_idx < 0){
-            printf("particle_idx: %d - p_idx: %d\n", particle_idx, p_idx);
-        }
+        //if (particle_idx >= 600 || particle_idx < 0 || p_idx >= 600 || p_idx < 0){
+        //    printf("particle_idx: %d - p_idx: %d\n", particle_idx, p_idx);
+        //}
         
         float pairwise_dist = glm_vec3_distance(sim_params->positions[particle_idx], sim_params->positions[p_idx]);
         pairwise_dist = clamp_pairwise_dist(pairwise_dist);
@@ -235,7 +252,7 @@ static void update_sim_densities_at_particle_partitioned(fluid_sim_parameters* s
      
 
     for (int i = 0; i < 27; i += 1){
-        int needed_cells_at_i = needed_cells[i];
+        //int needed_cells_at_i = needed_cells[i];
         if (needed_cells[i] != -1){
             sim_params->densities[particle_idx] += get_density_at_particle_at_cell(sim_params, particle_idx, needed_cells[i]);
         }
@@ -273,7 +290,12 @@ static void update_sim_grid(fluid_sim_parameters* sim_params){
     
     // UPDATE CELL IDX FOR EACH PARTICLE
     for (int i = 0; i < sim_params->n_particles; i += 1){
+        //int v = pos_to_cell(sim_params, sim_params->positions[i]);
         sim_params->grid_particle_cells[i] = pos_to_cell(sim_params, sim_params->positions[i]);
+        
+        //if (v < 0 || v > sim_params->n_particles){
+        //    printf("%d \n", v);
+        //}
     }
     
     // RESET GRID
@@ -542,6 +564,8 @@ static void get_pressure_force_simple_at_particle_at_cell(fluid_sim_parameters* 
     for (int i = 0; i < sim_params->grid_cells_num_partciles_count[cell_idx]; i += 1){
             
         int p_idx = sim_params->grid[start_grid_idx + i];
+        if (p_idx == particle_idx) continue;
+        
 
         vec3 pairwise_force;
             
@@ -563,7 +587,11 @@ static void get_pressure_force_simple_at_particle_at_cell(fluid_sim_parameters* 
         float density_idx = sim_params->densities[particle_idx];
         float density_i = sim_params->densities[p_idx];
 
-        float pairwise_coeff = -press_i * sim_params->particle_mass / density_i;
+        //float pairwise_coeff = -press_i * sim_params->particle_mass / density_i;
+        float pairwise_coeff =
+            -sim_params->particle_mass *
+            (press_idx / (density_idx * density_idx)
+             + press_i / (density_i * density_i));
 
         // CALCULATE PAIRWISE FORCE
         glm_vec3_scale(kernel_grad, pairwise_coeff, pairwise_force);
@@ -588,12 +616,15 @@ static void get_pressure_force_simple_at_particle_partitioned(fluid_sim_paramete
 
     for (int i = 0; i < 27; i += 1){
         vec3 pressure_at_cell;
+        glm_vec3_zero(pressure_at_cell);
         if (needed_cells[i] != -1){ 
             get_pressure_force_simple_at_particle_at_cell(sim_params, particle_idx, needed_cells[i], pressure_at_cell);
+            glm_vec3_add(pressure_at_cell, res_pressure_force, res_pressure_force);
         }
         
         
-        glm_vec3_add(pressure_at_cell, res_pressure_force, res_pressure_force);
+        
+       
     }
 
     glm_vec3_copy(res_pressure_force, dest_force);

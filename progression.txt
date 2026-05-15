@@ -2,6 +2,7 @@ MONDAY
 - DONE Heightmaps and Terrain
 - DONE Meshes  
 - DONE solve partitioning !!!
+- solve paritioning some more !!!
 - Ground / fluid collision
 - Ground affected by fluid
 TUESDAY
@@ -19,7 +20,7 @@ OTHER
 - ui?
 - k-nearest neighbors? adaptive radius?
 - better integration method than Euler?
-
+- fluid rendering?
 
 ____________________________________
 
