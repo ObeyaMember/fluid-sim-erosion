@@ -26,5 +26,7 @@ typedef struct terrain_s terrain;
 
 terrain new_terrain_from_heightmap(heightmap* h_map, vec3 pos, vec3 dims);
 
+void print_terrain_data(terrain* t);
+
 void free_terrain(terrain* t);
 #endif

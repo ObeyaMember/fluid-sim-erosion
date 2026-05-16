@@ -336,6 +336,63 @@ static void update_sim_grid(fluid_sim_parameters* sim_params){
     
 }
 
+static void update_grid_ground(fluid_sim_parameters* sim_params){
+    // UPDATE CELL IDX FOR EACH PARTICLE
+    terrain* t = sim_params->ground_terrain;
+    heightmap* h_map = t->h_map;
+    mesh* m = sim_params->ground_mesh;
+    
+    int res_x = h_map->map_res_x;
+    int res_y = h_map->map_res_y;
+
+    for (int i = 0; i < res_y; i += 1){ // this is the good one
+            for (int j = 0; j < res_x; j += 1){ // this also the good
+            int vertex_idx = (i*res_x + j)*3;
+            vec3 pos = {0, 0, 0};
+            
+            int pos_x = m->mesh_vertices[vertex_idx + 0];
+            int pos_y = m->mesh_vertices[vertex_idx + 1];
+            int pos_z = m->mesh_vertices[vertex_idx + 2];
+                
+            pos[0] = pos_x;
+            pos[1] = pos_y;
+            pos[2] = pos_z;
+
+
+            int cell = pos_to_cell(sim_params, pos);
+            sim_params->grid_hmap_points_cells[vertex_idx / 3] = cell;
+        
+        }
+    }
+    
+    // RESET GRID
+    //for (int i = 0; i < sim_params->n_grid_cells_total; i += 1){
+    //    sim_params->grid_cells_num_hmap_points_count[i] = 0;
+    //    sim_params->grid_cells_num_hmap_points_prefix_sums[i] = 0;
+    //}
+
+    // UPDATE PREFIX SUMS
+    // first just count cell occurences
+    //for (int i = 0; i < res_y; i += 1){ // this is the good one
+    //    for (int j = 0; j < res_x; j += 1){
+    //        int vertex_idx = (i*res_x + j)*3;
+    //        
+    //        int p_cells_at_idx = sim_params->grid_particle_cells[vertex_idx];
+    //        sim_params->grid_cells_num_hmap_points_count[p_cells_at_idx] += 1;
+    //        sim_params->grid_cells_num_hmap_points_prefix_sums[sim_params->grid_hmap_points_cells[i]] += 1;
+    //    }
+    //}
+    
+    // then compute prefix sums
+    //for (int i = 1; i < sim_params->n_grid_cells_total; i += 1){
+    //    sim_params->grid_cells_num_hmap_points_prefix_sums[i] += sim_params->grid_cells_num_hmap_points_prefix_sums[i-1];
+    //}
+    
+
+    // ORDER PARTICLES BY THEIR CELL INDICES
+    //radix_sort_map(sim_params->grid_ground, sim_params->grid_hmap_points_cells, res_x * res_y);
+}
+
 //                                          FORCE CALCULATIONS FUNCTIONS
 
 // air drag
@@ -465,6 +522,34 @@ static void get_out_of_bounds_force(fluid_sim_parameters* sim_params, int partic
     glm_vec3_copy(res_force, dest_force);
 
 }
+
+// static void get_terrain_collision_force(fluid_sim_parameters* sim_params, int particle_idx, vec3 dest_force){
+//     int start_grid_idx = 0;
+//     if (cell_idx == 0){
+//         start_grid_idx = 0;
+//     }else {
+//         start_grid_idx = sim_params->grid_cells_num_particles_prefix_sums[cell_idx-1];
+//     }
+//     int n_partcile_count_at_cell_idx = sim_params->grid_cells_num_partciles_count[cell_idx];
+//     // print test
+//     //if (n_partcile_count_at_cell_idx >= 600 || n_partcile_count_at_cell_idx < 0){
+//     //        printf("n_partcile_count_at_cell_idx: %d\n", n_partcile_count_at_cell_idx);
+//     //    }
+
+//     for (int i = 0; i < sim_params->grid_cells_num_partciles_count[cell_idx]; i += 1){
+        
+//         int p_idx = sim_params->grid[start_grid_idx + i];
+//         // print test
+//         //if (particle_idx >= 600 || particle_idx < 0 || p_idx >= 600 || p_idx < 0){
+//         //    printf("particle_idx: %d - p_idx: %d\n", particle_idx, p_idx);
+//         //}
+        
+//         float pairwise_dist = glm_vec3_distance(sim_params->positions[particle_idx], sim_params->positions[p_idx]);
+//         pairwise_dist = clamp_pairwise_dist(pairwise_dist);
+//         res_density += sim_params->particle_mass * smoothing_kernel_cubic(sim_params, pairwise_dist);
+        
+//     }
+// }
 
 // pressure
 static void get_pressure_force(fluid_sim_parameters* sim_params, int particle_idx, vec3 dest_force){
@@ -643,6 +728,18 @@ static void setup_arrays(fluid_sim_parameters* sim_params){
     sim_params->grid_cells_num_partciles_count = malloc(sim_params->n_grid_cells_total * sizeof(int));
     sim_params->grid_cells_num_particles_prefix_sums = malloc(sim_params->n_grid_cells_total * sizeof(int));
     sim_params->grid = malloc(sim_params->n_particles * sizeof(int));
+
+    // GROUND GRID
+    terrain* t = sim_params->ground_terrain;
+    heightmap* h_map = t->h_map;
+    int n_hmap_points = h_map->map_res_x * h_map->map_res_y;
+    sim_params->n_hmap_points = n_hmap_points;
+    sim_params->grid_hmap_points_cells = malloc(n_hmap_points * sizeof(int));
+    sim_params->grid_cells_num_hmap_points_count = malloc(sim_params->n_grid_cells_total * sizeof(int));
+    sim_params->grid_cells_num_hmap_points_prefix_sums = malloc(sim_params->n_grid_cells_total * sizeof(int));
+    sim_params->grid_ground = malloc(n_hmap_points * sizeof(int));
+    //print_terrain_data(t);
+
 }
 
 static void setup_particle_positions_in_box_uniform(fluid_sim_parameters* sim_params){
@@ -795,6 +892,7 @@ void fluid_sim_setup(fluid_sim_parameters* sim_params){
     int n_cells_total = n_cells_x*n_cells_y*n_cells_z;
     sim_params->n_grid_cells_total = n_cells_total;
     setup_arrays(sim_params);
+    // setup
     
     if (sim_params->positions_setup_mode == 0){
         setup_particle_positions_in_box(sim_params);
@@ -892,6 +990,7 @@ void one_sim_step(fluid_sim_parameters* sim_params){
 void one_sim_step_partitioned(fluid_sim_parameters* sim_params){
     if (sim_params->is_running == 1){
         update_sim_grid(sim_params);
+        update_grid_ground(sim_params);
 
         // UPDATE ALL DENSITIES AND ALL PRESSURES
         for (int i = 0; i < sim_params->n_particles; i += 1){

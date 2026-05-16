@@ -9,6 +9,8 @@
 #include "..//GLFW/glfw3.h"
 #include "../utilities/utilities.h"
 
+#include "../terrain/terrain.h"
+
 struct fluid_sim_parameters_s{
     int sim_id;
 
@@ -24,9 +26,20 @@ struct fluid_sim_parameters_s{
     int n_grid_cells_z;
     int n_grid_cells_total;
     int* grid_particle_cells; // holds cell idx of particle i at i
+
+    // PARTICLES SPACE PARTITIONING
     int* grid_cells_num_partciles_count;
     int* grid_cells_num_particles_prefix_sums; 
     int* grid; // holds particle indices ordered by their cell indices
+    
+    // GROUND (terrain) and SPACE PARTITIONING
+    terrain* ground_terrain;
+    int n_hmap_points;
+    int* grid_hmap_points_cells; // holds cell idx of hmap point i at i
+    int* grid_cells_num_hmap_points_count;
+    int* grid_cells_num_hmap_points_prefix_sums; 
+    int* grid_ground; // holds hmap point indices ordered by their cell indices
+    mesh* ground_mesh;
     
     
     // SPAWN BOX

@@ -11,6 +11,7 @@
 
 #include "../../libraries/fluid_simulation/fluid_simulation.h"
 
+
 struct fluid_render_parameters_s {
 
     //                                                  SHADERS AND SHADER PROGRAMS
@@ -76,6 +77,8 @@ struct fluid_render_parameters_s {
 
     // whole sim grid
     unsigned int fluid_sim_grid_prefix_sums_VBO;
+
+    //                                                          GROUND RENDERER
 };
 
 typedef struct fluid_render_parameters_s fluid_render_paramters; 

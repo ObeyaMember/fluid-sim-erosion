@@ -153,26 +153,9 @@ void fluid_test_scene_setup(GLFWwindow* window){
     camera_setup(&camera_1);
     //glEnable(GL_CULL_FACE);    !!!!!!!!!!!!!!!! face order baaad 
     
-
-    //  FLUID SIM 2
-    // fluid sim
-    fluid_sim_setup(&fluid_sim_params_2);
-    
-    // fluid render
-    fluid_renderer_setup(&fluid_render_params_2, &fluid_sim_params_2);
-    
-      //  FLUID SIM 1
-    // fluid sim
-    fluid_sim_params_1.sim_to_copy = &fluid_sim_params_2;
-    //fluid_sim_setup(&fluid_sim_params_1);
-    
-    
-    // fluid render
-    //fluid_renderer_setup(&fluid_render_params_1, &fluid_sim_params_1);
-
     //              GROUND
     // ground heightmap
-    heightmap_setup(&ground_h_map, 30, 30);
+    heightmap_setup(&ground_h_map, 60, 60);
     vec3 dome_weights = {ground_h_map.map_res_x, ground_h_map.map_res_y};
     heightmap_from_function(dome_weights ,&ground_h_map, dome);
     //heightmap_white(&ground_h_map);
@@ -188,10 +171,37 @@ void fluid_test_scene_setup(GLFWwindow* window){
     t_pos[1] -= 0.5 * fluid_sim_params_2.bound_dims[1];
     ground_terrain = new_terrain_from_heightmap(&ground_h_map, t_pos, t_dims);
     // ground mesh
-
+    heightmap* h = ground_terrain.h_map;
     ground_mesh = new_mesh_from_terrain(&ground_terrain);
     mesh_renderer_setup(&ground_m_renderer, &ground_mesh);
+    
 
+
+
+    //  FLUID SIM 2
+    // fluid sim
+    fluid_sim_params_2.ground_terrain = &ground_terrain;
+    fluid_sim_params_2.ground_mesh = &ground_mesh;
+    //if (fluid_sim_params_2.ground_mesh == NULL) printf("NULL MESH \n");
+    //if (fluid_sim_params_2.ground_mesh != NULL) printf("MESH NOT NULL \n");
+    fluid_sim_setup(&fluid_sim_params_2);
+    
+    
+    //print_terrain_data(fluid_sim_params_2.ground_terrain);
+    
+    // fluid render
+    fluid_renderer_setup(&fluid_render_params_2, &fluid_sim_params_2);
+    
+      //  FLUID SIM 1
+    // fluid sim
+    fluid_sim_params_1.sim_to_copy = &fluid_sim_params_2;
+    //fluid_sim_setup(&fluid_sim_params_1);
+    
+    
+    // fluid render
+    //fluid_renderer_setup(&fluid_render_params_1, &fluid_sim_params_1);
+
+    
     
     // PRINTS
     //printf("bound pos: (%f, %f, %f)\n", fluid_sim_params_2.bound_pos[0], fluid_sim_params_2.bound_pos[1], fluid_sim_params_2.bound_pos[2]);
@@ -242,10 +252,13 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
 
     //  FLUID SIM 2
     // next sim step
-    fluid_sim_params_2.delta_time = delta_time;
+    fluid_sim_params_2.delta_time = 0.01;
     pause_sim(window, &fluid_sim_params_2);
     //one_sim_step(&fluid_sim_params_2);
-    one_sim_step_partitioned(&fluid_sim_params_2);
+    int num_sim_steps_per_frame = 1;
+    
+    for (int i = 0; i < num_sim_steps_per_frame; i += 1){ one_sim_step_partitioned(&fluid_sim_params_2);}
+    
 
     //  fluid renderer
     // draw bounding
@@ -314,6 +327,8 @@ void fluid_test_scene_main_loop(GLFWwindow* window){
     
     // CAMERA 1
     camera_loop(window, &camera_1, &mouse_x, &mouse_y, delta_time);
+
+    
 }   
 
 void fluid_test_scene_end(GLFWwindow* window){

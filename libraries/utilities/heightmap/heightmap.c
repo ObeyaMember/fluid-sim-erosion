@@ -45,13 +45,18 @@ void heightmap_from_image(heightmap* map){
 }
 
 void print_heightmap(heightmap* h_map){
-    int res_x = h_map->map_res_x;
-    int res_y = h_map->map_res_y;
-    for (int i = 0; i < res_x; i += 1){
-        for (int j = 0; j < res_y; j += 1){
-            printf("%f ", h_map->grid[i][j]);
+    if (h_map == NULL){
+        printf("h_map - NULL\n");
+    }else{
+        printf("h_map - ");
+        int res_x = h_map->map_res_x;
+        int res_y = h_map->map_res_y;
+        for (int i = 0; i < res_x; i += 1){
+            for (int j = 0; j < res_y; j += 1){
+                printf("%f ", h_map->grid[i][j]);
+            }
+            printf("\n");
         }
-        printf("\n");
     }
 }
 
