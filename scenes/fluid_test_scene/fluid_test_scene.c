@@ -92,8 +92,8 @@ fluid_sim_parameters fluid_sim_params_2 = {
     .n_grid_cells_total = 1000, // doesn't need to be hand stated
 
     // SPAWN BOX
-    .spawn_box_pos = {25, 0, 0},
-    .spawn_box_dims = {20, 20, 7},//{40, 10, 5},
+    .spawn_box_pos = {25, 5, 0},
+    .spawn_box_dims = {20, 5, 20},//{40, 10, 5},
     
     .positions_setup_mode = 0,
     .is_frozen = 0,

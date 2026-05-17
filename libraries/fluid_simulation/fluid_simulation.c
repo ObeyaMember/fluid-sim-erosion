@@ -28,6 +28,33 @@ static void get_grid_cell_dims(fluid_sim_parameters* sim_params, vec3 dest){
     glm_vec3_copy(dims, dest);
 }
 
+static int is_valid_grid_config(fluid_sim_parameters* sim_params){
+    return sim_params->n_grid_cells_x > 0 &&
+           sim_params->n_grid_cells_y > 0 &&
+           sim_params->n_grid_cells_z > 0 &&
+           sim_params->n_grid_cells_total > 0;
+}
+
+static int vec3_is_finite(vec3 v){
+    return isfinite(v[0]) && isfinite(v[1]) && isfinite(v[2]);
+}
+
+static int clamp_cell_idx(fluid_sim_parameters* sim_params, int cell_idx, int fallback_cell_idx){
+    if (fallback_cell_idx < 0){
+        fallback_cell_idx = 0;
+    }
+
+    if (fallback_cell_idx >= sim_params->n_grid_cells_total){
+        fallback_cell_idx = sim_params->n_grid_cells_total - 1;
+    }
+
+    if (cell_idx < 0 || cell_idx >= sim_params->n_grid_cells_total){
+        return fallback_cell_idx;
+    }
+
+    return cell_idx;
+}
+
 static int pos_to_cell(fluid_sim_parameters* sim_params, vec3 pos){
     int n_grid_cells_x = sim_params->n_grid_cells_x;
     int n_grid_cells_y = sim_params->n_grid_cells_y;
@@ -287,11 +314,26 @@ static void update_sim_pressure_at_particle_simple(fluid_sim_parameters* sim_par
 }
 
 static void update_sim_grid(fluid_sim_parameters* sim_params){
+    if (!is_valid_grid_config(sim_params) ||
+        sim_params->positions == NULL ||
+        sim_params->grid_particle_cells == NULL ||
+        sim_params->grid_cells_num_partciles_count == NULL ||
+        sim_params->grid_cells_num_particles_prefix_sums == NULL ||
+        sim_params->grid == NULL) {
+        return;
+    }
+
+    int fallback_cell_idx = clamp_cell_idx(sim_params, pos_to_cell(sim_params, sim_params->bound_pos), 0);
     
     // UPDATE CELL IDX FOR EACH PARTICLE
     for (int i = 0; i < sim_params->n_particles; i += 1){
-        //int v = pos_to_cell(sim_params, sim_params->positions[i]);
-        sim_params->grid_particle_cells[i] = pos_to_cell(sim_params, sim_params->positions[i]);
+        int cell_idx = fallback_cell_idx;
+
+        if (vec3_is_finite(sim_params->positions[i])) {
+            cell_idx = pos_to_cell(sim_params, sim_params->positions[i]);
+        }
+
+        sim_params->grid_particle_cells[i] = clamp_cell_idx(sim_params, cell_idx, fallback_cell_idx);
         
         //if (v < 0 || v > sim_params->n_particles){
         //    printf("%d \n", v);
@@ -350,13 +392,13 @@ static void update_grid_ground(fluid_sim_parameters* sim_params){
             int vertex_idx = (i*res_x + j)*3;
             vec3 pos = {0, 0, 0};
             
-            int pos_x = m->mesh_vertices[vertex_idx + 0];
-            int pos_y = m->mesh_vertices[vertex_idx + 1];
-            int pos_z = m->mesh_vertices[vertex_idx + 2];
+            pos[0] = m->pos[0] + m->mesh_vertices[vertex_idx + 0];
+            pos[1] = m->pos[1] + m->mesh_vertices[vertex_idx + 1];
+            pos[2] = m->pos[2] + m->mesh_vertices[vertex_idx + 2];
                 
-            pos[0] = pos_x;
-            pos[1] = pos_y;
-            pos[2] = pos_z;
+            
+            
+            
 
 
             int cell = pos_to_cell(sim_params, pos);
@@ -366,31 +408,31 @@ static void update_grid_ground(fluid_sim_parameters* sim_params){
     }
     
     // RESET GRID
-    //for (int i = 0; i < sim_params->n_grid_cells_total; i += 1){
-    //    sim_params->grid_cells_num_hmap_points_count[i] = 0;
-    //    sim_params->grid_cells_num_hmap_points_prefix_sums[i] = 0;
-    //}
+    for (int i = 0; i < sim_params->n_grid_cells_total; i += 1){
+        sim_params->grid_cells_num_hmap_points_count[i] = 0;
+        sim_params->grid_cells_num_hmap_points_prefix_sums[i] = 0;
+    }
 
     // UPDATE PREFIX SUMS
     // first just count cell occurences
-    //for (int i = 0; i < res_y; i += 1){ // this is the good one
-    //    for (int j = 0; j < res_x; j += 1){
-    //        int vertex_idx = (i*res_x + j)*3;
-    //        
-    //        int p_cells_at_idx = sim_params->grid_particle_cells[vertex_idx];
-    //        sim_params->grid_cells_num_hmap_points_count[p_cells_at_idx] += 1;
-    //        sim_params->grid_cells_num_hmap_points_prefix_sums[sim_params->grid_hmap_points_cells[i]] += 1;
-    //    }
-    //}
+    for (int i = 0; i < res_y; i += 1){ // this is the good one
+        for (int j = 0; j < res_x; j += 1){
+            int vertex_idx = (i*res_x + j)*3;
+            
+            int p_cells_at_idx = sim_params->grid_hmap_points_cells[vertex_idx / 3];
+            sim_params->grid_cells_num_hmap_points_count[p_cells_at_idx] += 1;
+            sim_params->grid_cells_num_hmap_points_prefix_sums[sim_params->grid_hmap_points_cells[vertex_idx / 3]] += 1;
+        }
+    }
     
     // then compute prefix sums
-    //for (int i = 1; i < sim_params->n_grid_cells_total; i += 1){
-    //    sim_params->grid_cells_num_hmap_points_prefix_sums[i] += sim_params->grid_cells_num_hmap_points_prefix_sums[i-1];
-    //}
-    
+    for (int c = 1; c < sim_params->n_grid_cells_total; c++) {
+    sim_params->grid_cells_num_hmap_points_prefix_sums[c] +=
+        sim_params->grid_cells_num_hmap_points_prefix_sums[c - 1];
+}
 
     // ORDER PARTICLES BY THEIR CELL INDICES
-    //radix_sort_map(sim_params->grid_ground, sim_params->grid_hmap_points_cells, res_x * res_y);
+    radix_sort_map(sim_params->grid_ground, sim_params->grid_hmap_points_cells, res_x * res_y);
 }
 
 //                                          FORCE CALCULATIONS FUNCTIONS
@@ -523,33 +565,70 @@ static void get_out_of_bounds_force(fluid_sim_parameters* sim_params, int partic
 
 }
 
-// static void get_terrain_collision_force(fluid_sim_parameters* sim_params, int particle_idx, vec3 dest_force){
-//     int start_grid_idx = 0;
-//     if (cell_idx == 0){
-//         start_grid_idx = 0;
-//     }else {
-//         start_grid_idx = sim_params->grid_cells_num_particles_prefix_sums[cell_idx-1];
-//     }
-//     int n_partcile_count_at_cell_idx = sim_params->grid_cells_num_partciles_count[cell_idx];
-//     // print test
-//     //if (n_partcile_count_at_cell_idx >= 600 || n_partcile_count_at_cell_idx < 0){
-//     //        printf("n_partcile_count_at_cell_idx: %d\n", n_partcile_count_at_cell_idx);
-//     //    }
+static void get_terrain_collision_force(fluid_sim_parameters* sim_params, int particle_idx, vec3 dest_force){
+    vec3 res = {0, 0, 0};
 
-//     for (int i = 0; i < sim_params->grid_cells_num_partciles_count[cell_idx]; i += 1){
-        
-//         int p_idx = sim_params->grid[start_grid_idx + i];
-//         // print test
-//         //if (particle_idx >= 600 || particle_idx < 0 || p_idx >= 600 || p_idx < 0){
-//         //    printf("particle_idx: %d - p_idx: %d\n", particle_idx, p_idx);
-//         //}
-        
-//         float pairwise_dist = glm_vec3_distance(sim_params->positions[particle_idx], sim_params->positions[p_idx]);
-//         pairwise_dist = clamp_pairwise_dist(pairwise_dist);
-//         res_density += sim_params->particle_mass * smoothing_kernel_cubic(sim_params, pairwise_dist);
-        
-//     }
-// }
+    if (sim_params->ground_terrain == NULL ||
+        sim_params->ground_mesh == NULL ||
+        sim_params->grid_cells_num_hmap_points_count == NULL ||
+        sim_params->grid_cells_num_hmap_points_prefix_sums == NULL ||
+        sim_params->grid_ground == NULL) {
+        glm_vec3_copy(res, dest_force);
+        return;
+    }
+
+    mesh* m = sim_params->ground_mesh;
+    int cell_idx = clamp_cell_idx(sim_params, pos_to_cell(sim_params, sim_params->positions[particle_idx]), 0);
+    vec3 particle_pos;
+    glm_vec3_copy(sim_params->positions[particle_idx], particle_pos);
+
+    int start_grid_idx = 0;
+    if (cell_idx != 0){
+        start_grid_idx = sim_params->grid_cells_num_hmap_points_prefix_sums[cell_idx - 1];
+    }
+
+    int min_dist_idx = -1;
+    float min_dist = 0.0f;
+    int n_hmap_points_count_at_cell_idx = sim_params->grid_cells_num_hmap_points_count[cell_idx];
+    vec3 min_point_pos = {0, 0, 0};
+    for (int i = 0; i < n_hmap_points_count_at_cell_idx; i += 1){
+        int point_idx = sim_params->grid_ground[start_grid_idx + i];
+        int vertex_idx = point_idx * 3;
+        vec3 new_point_pos = {
+            m->pos[0] + m->mesh_vertices[vertex_idx + 0],
+            m->pos[1] + m->mesh_vertices[vertex_idx + 1],
+            m->pos[2] + m->mesh_vertices[vertex_idx + 2],
+        };
+        float dist = glm_vec3_distance(new_point_pos, particle_pos);
+
+        if (min_dist_idx == -1 || dist < min_dist){
+            min_dist = dist;
+            min_dist_idx = point_idx;
+            glm_vec3_copy(new_point_pos, min_point_pos);
+        }
+    }
+
+    if (min_dist_idx == -1){
+        glm_vec3_copy(res, dest_force);
+        return;
+    }
+    
+    float h_diff = particle_pos[1] - (min_point_pos[1]);
+    //printf("min_dist_idx: %d\n", min_dist_idx);
+    //printf("val_left: %f\n", particle_pos[1]);
+    //printf("val_right: %f\n", m->pos[1]);
+    //printf("h_diff: %f\n", h_diff);
+    if (h_diff < 0){
+        float k = sim_params->out_of_bounds_stiffness;
+        res[1] = -k * (h_diff);
+        //res[1] = -10.0;
+        //printf("aaaa\n");    
+    }
+    
+    // Terrain response is still under construction; keep the force neutral,
+    // but avoid reading invalid mesh data while looking up nearest points.
+    glm_vec3_copy(res, dest_force);
+}
 
 // pressure
 static void get_pressure_force(fluid_sim_parameters* sim_params, int particle_idx, vec3 dest_force){
@@ -863,6 +942,16 @@ static void setup_sim_grid(fluid_sim_parameters* sim_params){
         sim_params->grid_cells_num_particles_prefix_sums[i] = 0;
     }
 
+    for (int i = 0; i < sim_params->n_hmap_points; i += 1){
+        sim_params->grid_hmap_points_cells[i] = 0;
+        sim_params->grid_ground[i] = i;
+    }
+
+    for (int i = 0; i < sim_params->n_grid_cells_total; i += 1){
+        sim_params->grid_cells_num_hmap_points_count[i] = 0;
+        sim_params->grid_cells_num_hmap_points_prefix_sums[i] = 0;
+    }
+
     update_sim_grid(sim_params);
     
     /* printf("grid:\n");
@@ -1037,6 +1126,11 @@ void one_sim_step_partitioned(fluid_sim_parameters* sim_params){
             vec3 out_of_bounds_force;
             get_out_of_bounds_force(sim_params, i, out_of_bounds_force);
             glm_vec3_add(total_force, out_of_bounds_force, total_force);
+
+            // APPLY TERRAIN COLLISION FORCE
+            vec3 terrain_collision_force;
+            get_terrain_collision_force(sim_params, i, terrain_collision_force);
+            glm_vec3_add(total_force, terrain_collision_force, total_force);
 
             /* // CALCULATE PRESSURE AT particle_idx = i
             //update_sim_pressure_at_particle(sim_params, i);
