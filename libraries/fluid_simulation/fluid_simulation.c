@@ -120,7 +120,7 @@ static int pos_to_cell(fluid_sim_parameters* sim_params, vec3 pos){
     }
 
     // ----- space hashing formula
-    int cell_idx = cell_z*n_grid_cells_y*n_grid_cells_x + cell_y*n_grid_cells_x + cell_x;
+    int cell_idx = cell_z * (n_grid_cells_y*n_grid_cells_x) + cell_y * (n_grid_cells_x) + cell_x;
     return cell_idx;
 }
 
@@ -565,7 +565,7 @@ static void get_out_of_bounds_force(fluid_sim_parameters* sim_params, int partic
 
 }
 
-static void get_terrain_collision_force(fluid_sim_parameters* sim_params, int particle_idx, vec3 dest_force){
+static void get_terrain_collision_force_at_cell(fluid_sim_parameters* sim_params, int particle_idx, int cell_idx, vec3 dest_force){
     vec3 res = {0, 0, 0};
 
     if (sim_params->ground_terrain == NULL ||
@@ -578,7 +578,7 @@ static void get_terrain_collision_force(fluid_sim_parameters* sim_params, int pa
     }
 
     mesh* m = sim_params->ground_mesh;
-    int cell_idx = clamp_cell_idx(sim_params, pos_to_cell(sim_params, sim_params->positions[particle_idx]), 0);
+    //int cell_idx = clamp_cell_idx(sim_params, pos_to_cell(sim_params, sim_params->positions[particle_idx]), 0);
     vec3 particle_pos;
     glm_vec3_copy(sim_params->positions[particle_idx], particle_pos);
 
@@ -625,9 +625,32 @@ static void get_terrain_collision_force(fluid_sim_parameters* sim_params, int pa
         //printf("aaaa\n");    
     }
     
-    // Terrain response is still under construction; keep the force neutral,
-    // but avoid reading invalid mesh data while looking up nearest points.
+  
     glm_vec3_copy(res, dest_force);
+}
+
+static void get_terrain_collision_force(fluid_sim_parameters* sim_params, int particle_idx, vec3 dest_force){
+    //int particle_cell_idx = cell_z * (n_grid_cells_y*n_grid_cells_x) + cell_y * (n_grid_cells_x) + cell_x;
+    //int particle_cell_no_x = cell_z * (n_grid_cells_y) + cell_y
+    int n_grid_cells_x = sim_params->n_grid_cells_x;
+    int n_grid_cells_y = sim_params->n_grid_cells_y;
+    int n_grid_cells_z = sim_params->n_grid_cells_z;
+    vec3 res = {0, 0, 0};
+    int particle_cell_idx = clamp_cell_idx(sim_params, pos_to_cell(sim_params, sim_params->positions[particle_idx]), 0);
+    int particle_cell_x = particle_cell_idx % n_grid_cells_x;
+    int particle_cell_no_x = ((particle_cell_idx - particle_cell_x) / n_grid_cells_x);
+    int particle_cell_y = particle_cell_no_x % n_grid_cells_y;
+    int particle_cell_z = (particle_cell_no_x - particle_cell_y) / n_grid_cells_y;
+
+    for (int y = 0; y < n_grid_cells_z; y += 1){
+        int cell_idx = particle_cell_z * (n_grid_cells_y*n_grid_cells_x) + y * (n_grid_cells_x) + particle_cell_x;
+        vec3 force_at_cell = {0, 0, 0};
+        get_terrain_collision_force_at_cell(sim_params, particle_idx, cell_idx, force_at_cell);
+        glm_vec3_add(force_at_cell, res, res);
+    }
+
+    glm_vec3_copy(res, dest_force);
+
 }
 
 // pressure
