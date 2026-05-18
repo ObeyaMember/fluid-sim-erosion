@@ -180,6 +180,51 @@ static void get_needed_cells_from_pos(fluid_sim_parameters* sim_params, vec3 pos
     }
 }
 
+static void get_normal_at_vertex(fluid_sim_parameters* sim_params, int vertex_idx, vec3 dest_vec){
+    terrain* t = sim_params->ground_terrain;
+    heightmap* h_map = t->h_map;
+    mesh* m = sim_params->ground_mesh;
+
+    int res_x = h_map->map_res_x;
+    int res_y = h_map->map_res_y;
+    
+    int idx_j = vertex_idx % res_x;
+    int idx_i = (vertex_idx - idx_j) / res_x;
+    if (idx_j >= res_x - 1) idx_j -= 1;
+    if (idx_i >= res_y - 1) idx_i -= 1;
+    
+    int vertex_right_idx = ((idx_i + 1)*res_x + idx_j)* 3;
+    int vertex_down_idx =  ((idx_i)*res_x + idx_j + 1) * 3;
+    int vertex_center_idx = ((idx_i)*res_x + idx_j) * 3;
+    vec3 vertex_right_pos = {
+        m->mesh_vertices[vertex_right_idx + 0],
+        m->mesh_vertices[vertex_right_idx + 1],
+        m->mesh_vertices[vertex_right_idx + 2],
+    };
+    vec3 vertex_down_pos = {
+        m->mesh_vertices[vertex_down_idx + 0],
+        m->mesh_vertices[vertex_down_idx + 1],
+        m->mesh_vertices[vertex_down_idx + 2],
+    };
+    vec3 vertex_center_pos = {
+        m->mesh_vertices[vertex_center_idx + 0],
+        m->mesh_vertices[vertex_center_idx + 1],
+        m->mesh_vertices[vertex_center_idx + 2],
+    };
+
+    vec3 right_center;
+    glm_vec3_sub(vertex_right_pos, vertex_center_pos, right_center);
+    vec3 down_center;
+    glm_vec3_sub(vertex_down_pos, vertex_center_pos, down_center);
+    vec3 normal;
+    glm_vec3_cross(right_center, down_center, normal);
+    vec3 normal_norm;
+    glm_vec3_normalize_to(normal, normal_norm);
+
+    glm_vec3_copy(normal_norm, dest_vec);
+
+}
+
 //                                              SMOOTHING KERNELS
 static float smoothing_kernel_linear(fluid_sim_parameters* sim_params, float dist_to_center){
     return glm_clamp(1.0 - (1.0 / sim_params->particle_radius) * fabs(dist_to_center), 0.0, 1.0);
@@ -463,6 +508,17 @@ static void get_bounce_damp_force(fluid_sim_parameters* sim_params, int particle
     glm_vec3_copy(res_force, dest_force);
 }
 
+static void get_ground_bounce_damp_force(fluid_sim_parameters* sim_params, int particle_idx, vec3 ground_normal, vec3 dest_force){
+    vec3 res_force = {0, 0, 0};
+    vec3 p_vel = {0, 0, 0};
+    glm_vec3_copy(sim_params->velocities[particle_idx], p_vel);
+    vec3 p_vel_normal_comp = {0,0,0};
+    float p_vel_normal_comp_len = glm_vec3_dot(p_vel, ground_normal);
+    glm_vec3_scale(ground_normal, p_vel_normal_comp_len, res_force);
+
+    glm_vec3_copy(res_force, dest_force);
+}
+
 static void get_out_of_bounds_force(fluid_sim_parameters* sim_params, int particle_idx, vec3 dest_force){
     
     vec3 res_force = {0,0,0};
@@ -620,9 +676,17 @@ static void get_terrain_collision_force_at_cell(fluid_sim_parameters* sim_params
     //printf("h_diff: %f\n", h_diff);
     if (h_diff < 0){
         float k = sim_params->out_of_bounds_stiffness;
-        res[1] = -k * (h_diff);
+        vec3 normal = {0, 0, 0};
+        get_normal_at_vertex(sim_params, min_dist_idx, normal);
+        //printf("normal: (%f, %f, %f)\n", res[0], res[1], res[2]);
+        
+        glm_vec3_scale(normal, k, res);
+        //res[1] = -k * (h_diff);
         //res[1] = -10.0;
-        //printf("aaaa\n");    
+        //printf("aaaa\n");   
+        vec3 damp_force = {0, 0, 0};
+        get_ground_bounce_damp_force(sim_params, particle_idx, normal, damp_force);
+        glm_vec3_add(damp_force, res, res); 
     }
     
   

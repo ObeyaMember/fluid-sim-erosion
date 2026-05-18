@@ -62,8 +62,6 @@ mesh new_mesh_from_heightmap(heightmap* hmap, vec3 pos, vec3 dims){
     return s;
 }
 
-
-
 void print_mesh_vertices(mesh* m){
     for (int i = 0; i < m->mesh_n_vertices; i += 1){
         printf("%d - (%f, %f, %f)\n", i, m->mesh_vertices[i*3], m->mesh_vertices[i*3+1], m->mesh_vertices[i*3+2]);

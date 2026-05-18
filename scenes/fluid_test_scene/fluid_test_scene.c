@@ -157,8 +157,8 @@ void fluid_test_scene_setup(GLFWwindow* window){
     // ground heightmap
     heightmap_setup(&ground_h_map, 60, 60);
     vec3 dome_weights = {ground_h_map.map_res_x, ground_h_map.map_res_y};
-    heightmap_from_function(dome_weights ,&ground_h_map, dome);
-    //heightmap_white(&ground_h_map);
+    //heightmap_from_function(dome_weights ,&ground_h_map, dome);
+    heightmap_white(&ground_h_map);
     //print_heightmap(&ground_h_map);
 
     // ground terrain
