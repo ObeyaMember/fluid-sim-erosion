@@ -319,7 +319,9 @@ static float get_density_at_particle_at_cell(fluid_sim_parameters* sim_params, i
     return res_density;
 }
 
-static void update_sim_densities_at_particle_partitioned(fluid_sim_parameters* sim_params, int particle_idx, int* needed_cells){
+static void update_sim_densities_at_particle_partitioned(fluid_sim_parameters* sim_params, int particle_idx){
+    int needed_cells[27] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    get_needed_cells_from_pos(sim_params, sim_params->positions[particle_idx], needed_cells);
     sim_params->densities[particle_idx] = 0.0;
      
 
@@ -478,6 +480,58 @@ static void update_grid_ground(fluid_sim_parameters* sim_params){
 
     // ORDER PARTICLES BY THEIR CELL INDICES
     radix_sort_map(sim_params->grid_ground, sim_params->grid_hmap_points_cells, res_x * res_y);
+}
+
+static void erode_mesh_at_cell(fluid_sim_parameters* sim_params, int particle_idx, int cell_idx, float amount){
+    mesh* m = sim_params->ground_mesh;
+    
+    int start_grid_idx = 0;
+    if (cell_idx == 0){
+        start_grid_idx = 0;
+    }else {
+        start_grid_idx = sim_params->grid_cells_num_hmap_points_prefix_sums[cell_idx-1];
+    }
+    int n_hmap_points_count_at_cell_idx = sim_params->grid_cells_num_hmap_points_count[cell_idx];
+    // print test
+    //if (n_partcile_count_at_cell_idx >= 600 || n_partcile_count_at_cell_idx < 0){
+    //        printf("n_partcile_count_at_cell_idx: %d\n", n_partcile_count_at_cell_idx);
+    //    }
+
+    for (int i = 0; i < sim_params->grid_cells_num_hmap_points_count[cell_idx]; i += 1){
+        
+        // Getting vertex position
+        int vertex_idx = sim_params->grid_ground[start_grid_idx + i];
+        vec3 vertex_pos = {
+            m->mesh_vertices[vertex_idx*3 + 0] + m->pos[0],
+            m->mesh_vertices[vertex_idx*3 + 1] + m->pos[1],
+            m->mesh_vertices[vertex_idx*3 + 2] + m->pos[2]
+        };
+        
+        // Applying the erosion amount if vertex in range
+        float dist = glm_vec3_distance(sim_params->positions[particle_idx], vertex_pos);
+        //printf("dist: %f\n", dist);
+        //printf("radius: %f\n", sim_params->particle_radius);
+        if (dist <= sim_params->particle_radius){
+            
+            m->mesh_vertices[vertex_idx*3 + 1] -= amount;
+            
+        }
+        
+        
+    }
+}
+
+static void erode_mesh_at_particle(fluid_sim_parameters* sim_params, int particle_idx){
+    int needed_cells[27] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    get_needed_cells_from_pos(sim_params, sim_params->positions[particle_idx], needed_cells);
+
+    for (int i = 0; i < 27; i+= 1){
+        if (needed_cells[i] != -1){
+            erode_mesh_at_cell(sim_params, particle_idx, needed_cells[i], 0.001);
+            
+        }
+    }
+
 }
 
 //                                          FORCE CALCULATIONS FUNCTIONS
@@ -862,9 +916,12 @@ static void get_pressure_force_simple_at_particle_at_cell(fluid_sim_parameters* 
 
 }
 
-static void get_pressure_force_simple_at_particle_partitioned(fluid_sim_parameters* sim_params, int particle_idx, int* needed_cells, vec3 dest_force){
+static void get_pressure_force_simple_at_particle_partitioned(fluid_sim_parameters* sim_params, int particle_idx, vec3 dest_force){
     vec3 res_pressure_force;
     glm_vec3_zero(res_pressure_force);
+
+    int needed_cells[27] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    get_needed_cells_from_pos(sim_params, sim_params->positions[particle_idx], needed_cells);
 
     for (int i = 0; i < 27; i += 1){
         vec3 pressure_at_cell;
@@ -1172,13 +1229,12 @@ void one_sim_step_partitioned(fluid_sim_parameters* sim_params){
         // UPDATE ALL DENSITIES AND ALL PRESSURES
         for (int i = 0; i < sim_params->n_particles; i += 1){
             // 27 bcs thats all the cells around a certain cell (it included)
-            int needed_cells[27] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-            get_needed_cells_from_pos(sim_params, sim_params->positions[i], needed_cells);
+            
             
             // UPDATE DENSITY AT PARTICLE i
             //printf("count: \n");
             //print_int_array(sim_params->grid_cells_num_partciles_count, sim_params->n_grid_cells_total);
-            update_sim_densities_at_particle_partitioned(sim_params, i, &needed_cells[0]);
+            update_sim_densities_at_particle_partitioned(sim_params, i);
             
             // UPDATE PRESSURE AT PARTICLE i
             update_sim_pressure_at_particle_simple(sim_params, i);   
@@ -1186,8 +1242,7 @@ void one_sim_step_partitioned(fluid_sim_parameters* sim_params){
 
         // CALCULATE PER PARTICLE FORCES AND ACC. UPDATE VEL AND POS.
         for (int i = 0; i < sim_params->n_particles; i += 1){
-            int needed_cells[27] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-            get_needed_cells_from_pos(sim_params, sim_params->positions[i], needed_cells);
+            
             
             // ------------------ forces -----------------
             vec3 total_force;
@@ -1197,7 +1252,7 @@ void one_sim_step_partitioned(fluid_sim_parameters* sim_params){
 
             // CALCULATE PRESSURE FORCE
             vec3 pressure_force;
-            get_pressure_force_simple_at_particle_partitioned(sim_params, i, needed_cells, pressure_force);
+            get_pressure_force_simple_at_particle_partitioned(sim_params, i, pressure_force);
             glm_vec3_add(pressure_force, total_force, total_force);            
             // APPLY GRAVITY FORCE
             vec3 grav_force;
@@ -1220,15 +1275,8 @@ void one_sim_step_partitioned(fluid_sim_parameters* sim_params){
             get_terrain_collision_force(sim_params, i, terrain_collision_force);
             glm_vec3_add(total_force, terrain_collision_force, total_force);
 
-            /* // CALCULATE PRESSURE AT particle_idx = i
-            //update_sim_pressure_at_particle(sim_params, i);
-
-            // APPLY PRESSURE FORCE
-            vec3 pressure_force;
-            //get_pressure_force(sim_params, i, pressure_force);
-            get_pressure_force_simple(sim_params, i, pressure_force);
-            glm_vec3_add(total_force, pressure_force, total_force);
-            //printf("Pressure force mag[%d]: %f\n", i, glm_vec3_norm(pressure_force)); */
+            // ERODE
+            erode_mesh_at_particle(sim_params, i);
 
             // CALCULATE NEW ACCEL
             glm_vec3_scale(total_force, 1.0 / sim_params->particle_mass, accel);
