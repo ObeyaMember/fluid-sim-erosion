@@ -488,8 +488,9 @@ static void get_air_drag_force(fluid_sim_parameters* sim_params, int particle_id
     
     vec3 p_vel;
     glm_vec3_copy(sim_params->velocities[particle_idx], p_vel);
+    float p_vel_norm = glm_vec3_norm(p_vel);
     
-    glm_vec3_scale(p_vel, -(sim_params->air_drag) * sim_params->particle_mass * (1 / sim_params->delta_time), res_force);
+    glm_vec3_scale(p_vel, -p_vel_norm * (sim_params->air_drag), res_force);
 
     glm_vec3_copy(res_force, dest_force);
 }
@@ -503,7 +504,7 @@ static void get_bounce_damp_force(fluid_sim_parameters* sim_params, int particle
     
     vec3 p_vel_normal_comp = {p_vel[0] * abs(wall_normal[0]), p_vel[1] * abs(wall_normal[1]), p_vel[2] * abs(wall_normal[2])};
 
-    glm_vec3_scale(p_vel_normal_comp, -(sim_params->out_of_bounds_bounce_damp) * sim_params->particle_mass * (1 / sim_params->delta_time), res_force);
+    glm_vec3_scale(p_vel_normal_comp, -(sim_params->out_of_bounds_bounce_damp), res_force);
 
     glm_vec3_copy(res_force, dest_force);
 }
@@ -513,7 +514,7 @@ static void get_ground_bounce_damp_force(fluid_sim_parameters* sim_params, int p
     vec3 p_vel = {0, 0, 0};
     glm_vec3_copy(sim_params->velocities[particle_idx], p_vel);
     vec3 p_vel_normal_comp = {0,0,0};
-    float p_vel_normal_comp_len = glm_vec3_dot(p_vel, ground_normal);
+    float p_vel_normal_comp_len = glm_vec3_dot(p_vel, ground_normal) * sim_params->out_of_bounds_bounce_damp;
     glm_vec3_scale(ground_normal, p_vel_normal_comp_len, res_force);
 
     glm_vec3_copy(res_force, dest_force);
@@ -675,7 +676,7 @@ static void get_terrain_collision_force_at_cell(fluid_sim_parameters* sim_params
     //printf("val_right: %f\n", m->pos[1]);
     //printf("h_diff: %f\n", h_diff);
     if (h_diff < 0){
-        float k = sim_params->out_of_bounds_stiffness;
+        float k = sim_params->out_of_bounds_stiffness * (-h_diff);
         vec3 normal = {0, 0, 0};
         get_normal_at_vertex(sim_params, min_dist_idx, normal);
         //printf("normal: (%f, %f, %f)\n", res[0], res[1], res[2]);

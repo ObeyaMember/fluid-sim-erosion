@@ -111,7 +111,7 @@ fluid_sim_parameters fluid_sim_params_2 = {
     .stiffness_k = 30,
     .stiffness_gamma = 3.0,
     .reference_density = 0.05,
-    .air_drag = 0.005
+    .air_drag = 0.1
 };
 fluid_render_paramters fluid_render_params_2 = {
     .render_radius = 0.5
