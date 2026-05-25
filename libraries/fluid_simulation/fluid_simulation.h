@@ -59,6 +59,7 @@ struct fluid_sim_parameters_s{
     float particle_radius;
     float grav_scale;
     float reference_density;
+    float viscosity;
     float stiffness_k;
     float stiffness_gamma;
     float air_drag; // between 0 and 1

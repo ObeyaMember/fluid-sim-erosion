@@ -166,7 +166,7 @@ static void get_needed_cells_from_pos(fluid_sim_parameters* sim_params, vec3 pos
 
                 if (current_rel_cell < 0 || current_rel_cell >= sim_params->n_grid_cells_total) {
                     needed_cells[local_cell_idx] = -1;
-                } else if (contains_cell(needed_cells, local_cell_idx, current_rel_cell)) {
+                } else if (contains_cell(needed_cells, local_cell_idx, current_rel_cell)) { // forgot what this is for...
                     needed_cells[local_cell_idx] = -1;
                 } else if (sim_params->grid_cells_num_partciles_count[current_rel_cell] == 0) {
                     needed_cells[local_cell_idx] = -1;
@@ -179,6 +179,56 @@ static void get_needed_cells_from_pos(fluid_sim_parameters* sim_params, vec3 pos
         }
     }
 }
+
+static void get_needed_grid_cells_from_pos(fluid_sim_parameters* sim_params, vec3 pos, int* needed_cells){
+    //print_int_array(sim_params->grid_cells_num_partciles_count, sim_params->n_grid_cells_total);
+    
+    vec3 cell_dims;
+    get_grid_cell_dims(sim_params, cell_dims);
+
+    //printf("one go ----------------------------------\n");
+    int local_cell_idx = 0;
+    for (int x = 0; x <= 2; x += 1){
+        for (int y = 0; y <= 2; y += 1){
+            for (int z = 0; z <= 2; z += 1){
+                vec3 offset = {-1 + x, -1 + y, -1 + z};
+                
+                offset[0] *= cell_dims[0];
+                offset[1] *= cell_dims[1];
+                offset[2] *= cell_dims[2];
+                //print_vec3(offset);
+                
+                
+                vec3 rel_pos;
+                glm_vec3_add(pos, offset, rel_pos);
+                
+                
+                int current_rel_cell = pos_to_cell(sim_params, rel_pos);
+
+                //if (current_rel_cell < 0 || current_rel_cell >= sim_params->n_grid_cells_total) {
+                //    needed_cells[local_cell_idx] = -1;
+                //} else if (sim_params->grid_cells_num_partciles_count[current_rel_cell] == 0) {
+                //    needed_cells[local_cell_idx] = -1;
+                //} else {
+                //    needed_cells[local_cell_idx] = current_rel_cell;
+                //}
+
+                if (current_rel_cell < 0 || current_rel_cell >= sim_params->n_grid_cells_total) {
+                    needed_cells[local_cell_idx] = -1;
+                } else if (contains_cell(needed_cells, local_cell_idx, current_rel_cell)) {
+                    needed_cells[local_cell_idx] = -1;
+                } else if (sim_params->grid_cells_num_hmap_points_count[current_rel_cell] == 0) {
+                    needed_cells[local_cell_idx] = -1;
+                } else {
+                    needed_cells[local_cell_idx] = current_rel_cell;
+                }
+                
+                local_cell_idx += 1;
+            }
+        }
+    }
+}
+
 
 static void get_normal_at_vertex(fluid_sim_parameters* sim_params, int vertex_idx, vec3 dest_vec){
     terrain* t = sim_params->ground_terrain;
@@ -220,6 +270,9 @@ static void get_normal_at_vertex(fluid_sim_parameters* sim_params, int vertex_id
     glm_vec3_cross(right_center, down_center, normal);
     vec3 normal_norm;
     glm_vec3_normalize_to(normal, normal_norm);
+    if (normal_norm[1] < 0.0f){
+    glm_vec3_scale(normal_norm, -1.0f, normal_norm);
+}
 
     glm_vec3_copy(normal_norm, dest_vec);
 
@@ -254,6 +307,13 @@ static float smoothing_kernel_cubic_deriv(fluid_sim_parameters* sim_params, floa
     else {
         return 0;
     }
+}
+
+// uknow
+static float viscosity_kernel_laplacian(fluid_sim_parameters* sim_params, float r){
+    float h = sim_params->particle_radius;
+    if (r >= h) return 0.0f;
+    return 45.0f * (h - r) / (3.1415926f * powf(h, 6.0f));
 }
 
 //                                         SIM STATE CALCULATIONS FUNCTIONS
@@ -523,7 +583,7 @@ static void erode_mesh_at_cell(fluid_sim_parameters* sim_params, int particle_id
 
 static void erode_mesh_at_particle(fluid_sim_parameters* sim_params, int particle_idx){
     int needed_cells[27] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-    get_needed_cells_from_pos(sim_params, sim_params->positions[particle_idx], needed_cells);
+    get_needed_grid_cells_from_pos(sim_params, sim_params->positions[particle_idx], needed_cells);
 
     for (int i = 0; i < 27; i+= 1){
         if (needed_cells[i] != -1){
@@ -568,8 +628,8 @@ static void get_ground_bounce_damp_force(fluid_sim_parameters* sim_params, int p
     vec3 p_vel = {0, 0, 0};
     glm_vec3_copy(sim_params->velocities[particle_idx], p_vel);
     vec3 p_vel_normal_comp = {0,0,0};
-    float p_vel_normal_comp_len = glm_vec3_dot(p_vel, ground_normal) * sim_params->out_of_bounds_bounce_damp;
-    glm_vec3_scale(ground_normal, p_vel_normal_comp_len, res_force);
+    float p_vel_normal_comp_len = glm_vec3_dot(p_vel, ground_normal);
+    glm_vec3_scale(ground_normal, -p_vel_normal_comp_len  * sim_params->out_of_bounds_bounce_damp, res_force);
 
     glm_vec3_copy(res_force, dest_force);
 }
@@ -676,100 +736,131 @@ static void get_out_of_bounds_force(fluid_sim_parameters* sim_params, int partic
 
 }
 
-static void get_terrain_collision_force_at_cell(fluid_sim_parameters* sim_params, int particle_idx, int cell_idx, vec3 dest_force){
-    vec3 res = {0, 0, 0};
 
-    if (sim_params->ground_terrain == NULL ||
-        sim_params->ground_mesh == NULL ||
-        sim_params->grid_cells_num_hmap_points_count == NULL ||
-        sim_params->grid_cells_num_hmap_points_prefix_sums == NULL ||
-        sim_params->grid_ground == NULL) {
-        glm_vec3_copy(res, dest_force);
-        return;
+
+static int clamp_int(int v, int lo, int hi){
+    if (v < lo) return lo;
+    if (v > hi) return hi;
+    return v;
+}
+
+static int vertex_id(int i, int j, int res_x){
+    return i * res_x + j;
+}
+
+static void get_vertex_world_pos(mesh* m, int vid, vec3 out){
+    out[0] = m->pos[0] + m->mesh_vertices[vid * 3 + 0];
+    out[1] = m->pos[1] + m->mesh_vertices[vid * 3 + 1];
+    out[2] = m->pos[2] + m->mesh_vertices[vid * 3 + 2];
+}
+
+static void get_upward_triangle_normal(vec3 a, vec3 b, vec3 c, vec3 out){
+    vec3 ab, ac, n;
+    glm_vec3_sub(b, a, ab);
+    glm_vec3_sub(c, a, ac);
+    glm_vec3_cross(ab, ac, n);
+    glm_vec3_normalize_to(n, out);
+
+    if (out[1] < 0.0f){
+        glm_vec3_scale(out, -1.0f, out);
     }
-
-    mesh* m = sim_params->ground_mesh;
-    //int cell_idx = clamp_cell_idx(sim_params, pos_to_cell(sim_params, sim_params->positions[particle_idx]), 0);
-    vec3 particle_pos;
-    glm_vec3_copy(sim_params->positions[particle_idx], particle_pos);
-
-    int start_grid_idx = 0;
-    if (cell_idx != 0){
-        start_grid_idx = sim_params->grid_cells_num_hmap_points_prefix_sums[cell_idx - 1];
-    }
-
-    int min_dist_idx = -1;
-    float min_dist = 0.0f;
-    int n_hmap_points_count_at_cell_idx = sim_params->grid_cells_num_hmap_points_count[cell_idx];
-    vec3 min_point_pos = {0, 0, 0};
-    for (int i = 0; i < n_hmap_points_count_at_cell_idx; i += 1){
-        int point_idx = sim_params->grid_ground[start_grid_idx + i];
-        int vertex_idx = point_idx * 3;
-        vec3 new_point_pos = {
-            m->pos[0] + m->mesh_vertices[vertex_idx + 0],
-            m->pos[1] + m->mesh_vertices[vertex_idx + 1],
-            m->pos[2] + m->mesh_vertices[vertex_idx + 2],
-        };
-        float dist = glm_vec3_distance(new_point_pos, particle_pos);
-
-        if (min_dist_idx == -1 || dist < min_dist){
-            min_dist = dist;
-            min_dist_idx = point_idx;
-            glm_vec3_copy(new_point_pos, min_point_pos);
-        }
-    }
-
-    if (min_dist_idx == -1){
-        glm_vec3_copy(res, dest_force);
-        return;
-    }
-    
-    float h_diff = particle_pos[1] - (min_point_pos[1]);
-    //printf("min_dist_idx: %d\n", min_dist_idx);
-    //printf("val_left: %f\n", particle_pos[1]);
-    //printf("val_right: %f\n", m->pos[1]);
-    //printf("h_diff: %f\n", h_diff);
-    if (h_diff < 0){
-        float k = sim_params->out_of_bounds_stiffness * (-h_diff);
-        vec3 normal = {0, 0, 0};
-        get_normal_at_vertex(sim_params, min_dist_idx, normal);
-        //printf("normal: (%f, %f, %f)\n", res[0], res[1], res[2]);
-        
-        glm_vec3_scale(normal, k, res);
-        //res[1] = -k * (h_diff);
-        //res[1] = -10.0;
-        //printf("aaaa\n");   
-        vec3 damp_force = {0, 0, 0};
-        get_ground_bounce_damp_force(sim_params, particle_idx, normal, damp_force);
-        glm_vec3_add(damp_force, res, res); 
-    }
-    
-  
-    glm_vec3_copy(res, dest_force);
 }
 
 static void get_terrain_collision_force(fluid_sim_parameters* sim_params, int particle_idx, vec3 dest_force){
-    //int particle_cell_idx = cell_z * (n_grid_cells_y*n_grid_cells_x) + cell_y * (n_grid_cells_x) + cell_x;
-    //int particle_cell_no_x = cell_z * (n_grid_cells_y) + cell_y
-    int n_grid_cells_x = sim_params->n_grid_cells_x;
-    int n_grid_cells_y = sim_params->n_grid_cells_y;
-    int n_grid_cells_z = sim_params->n_grid_cells_z;
-    vec3 res = {0, 0, 0};
-    int particle_cell_idx = clamp_cell_idx(sim_params, pos_to_cell(sim_params, sim_params->positions[particle_idx]), 0);
-    int particle_cell_x = particle_cell_idx % n_grid_cells_x;
-    int particle_cell_no_x = ((particle_cell_idx - particle_cell_x) / n_grid_cells_x);
-    int particle_cell_y = particle_cell_no_x % n_grid_cells_y;
-    int particle_cell_z = (particle_cell_no_x - particle_cell_y) / n_grid_cells_y;
+    vec3 zero = {0, 0, 0};
+    glm_vec3_copy(zero, dest_force);
 
-    for (int y = 0; y < n_grid_cells_z; y += 1){
-        int cell_idx = particle_cell_z * (n_grid_cells_y*n_grid_cells_x) + y * (n_grid_cells_x) + particle_cell_x;
-        vec3 force_at_cell = {0, 0, 0};
-        get_terrain_collision_force_at_cell(sim_params, particle_idx, cell_idx, force_at_cell);
-        glm_vec3_add(force_at_cell, res, res);
+    if (sim_params->ground_terrain == NULL || sim_params->ground_mesh == NULL){
+        return;
     }
 
-    glm_vec3_copy(res, dest_force);
+    terrain* t = sim_params->ground_terrain;
+    mesh* m = sim_params->ground_mesh;
+    heightmap* h = t->h_map;
 
+    int res_x = h->map_res_x;
+    int res_y = h->map_res_y;
+
+    if (res_x < 2 || res_y < 2){
+        return;
+    }
+
+    vec3 p;
+    glm_vec3_copy(sim_params->positions[particle_idx], p);
+
+    // Read actual spacing from the mesh so this stays consistent with mesh.c
+    float start_x = m->pos[0] + m->mesh_vertices[0 * 3 + 0];
+    float start_z = m->pos[2] + m->mesh_vertices[0 * 3 + 2];
+    float step_x = m->mesh_vertices[1 * 3 + 0] - m->mesh_vertices[0 * 3 + 0];
+    float step_z = m->mesh_vertices[(res_x) * 3 + 2] - m->mesh_vertices[0 * 3 + 2];
+
+    if (fabsf(step_x) < 1e-6f || fabsf(step_z) < 1e-6f){
+        return;
+    }
+
+    int j = (int)floorf((p[0] - start_x) / step_x);
+    int i = (int)floorf((p[2] - start_z) / step_z);
+
+    j = clamp_int(j, 0, res_x - 2);
+    i = clamp_int(i, 0, res_y - 2);
+
+    int v00_id = vertex_id(i,     j,     res_x);
+    int v10_id = vertex_id(i,     j + 1, res_x);
+    int v01_id = vertex_id(i + 1, j,     res_x);
+    int v11_id = vertex_id(i + 1, j + 1, res_x);
+
+    vec3 v00, v10, v01, v11;
+    get_vertex_world_pos(m, v00_id, v00);
+    get_vertex_world_pos(m, v10_id, v10);
+    get_vertex_world_pos(m, v01_id, v01);
+    get_vertex_world_pos(m, v11_id, v11);
+
+    // Same diagonal as mesh.c:
+    // tri 1 = (v00, v10, v11)
+    // tri 2 = (v00, v01, v11)
+    float fx = (p[0] - v00[0]) / (v10[0] - v00[0]);
+    float fz = (p[2] - v00[2]) / (v01[2] - v00[2]);
+
+    vec3 a, b, c, n;
+    if (fz <= fx){
+        glm_vec3_copy(v00, a);
+        glm_vec3_copy(v10, b);
+        glm_vec3_copy(v11, c);
+    } else {
+        glm_vec3_copy(v00, a);
+        glm_vec3_copy(v01, b);
+        glm_vec3_copy(v11, c);
+    }
+
+    get_upward_triangle_normal(a, b, c, n);
+
+    vec3 ap;
+    glm_vec3_sub(p, a, ap);
+
+    // Signed distance from particle center to terrain plane
+    float dist = glm_vec3_dot(ap, n);
+
+    // Sphere-plane penetration
+    float penetration =  0.5 * (sim_params->particle_radius) - dist;
+    if (penetration <= 0.0f){
+        return;
+    }
+
+    // Spring force
+    vec3 spring_force;
+    glm_vec3_scale(n, sim_params->out_of_bounds_stiffness * penetration, spring_force);
+
+    // Damping only when moving into the ground
+    vec3 vel;
+    glm_vec3_copy(sim_params->velocities[particle_idx], vel);
+    float vn = glm_vec3_dot(vel, n);
+
+    vec3 damp_force = {0, 0, 0};
+    if (vn < 0.0f){
+        glm_vec3_scale(n, -sim_params->out_of_bounds_bounce_damp * vn, damp_force);
+    }
+
+    glm_vec3_add(spring_force, damp_force, dest_force);
 }
 
 // pressure
@@ -937,6 +1028,59 @@ static void get_pressure_force_simple_at_particle_partitioned(fluid_sim_paramete
     }
 
     glm_vec3_copy(res_pressure_force, dest_force);
+}
+
+// viscosity
+// uknow
+static void get_viscosity_force_at_particle_at_cell(fluid_sim_parameters* sim_params, int particle_idx, int cell_idx, vec3 dest_force){
+    vec3 res_force = {0, 0, 0};
+
+    int start_grid_idx = (cell_idx == 0) ? 0 : sim_params->grid_cells_num_particles_prefix_sums[cell_idx - 1];
+
+    for (int i = 0; i < sim_params->grid_cells_num_partciles_count[cell_idx]; i += 1){
+        int p_idx = sim_params->grid[start_grid_idx + i];
+        if (p_idx == particle_idx) continue;
+
+        float r = glm_vec3_distance(sim_params->positions[particle_idx], sim_params->positions[p_idx]);
+        r = clamp_pairwise_dist(r);
+
+        float lap = viscosity_kernel_laplacian(sim_params, r);
+        if (lap <= 0.0f) continue;
+
+        vec3 vel_diff;
+        glm_vec3_sub(sim_params->velocities[p_idx], sim_params->velocities[particle_idx], vel_diff);
+
+        float rho_j = sim_params->densities[p_idx];
+        float coeff = sim_params->particle_mass * sim_params->particle_mass * sim_params->viscosity / rho_j * lap;
+
+        vec3 pairwise_force;
+        glm_vec3_scale(vel_diff, coeff, pairwise_force);
+        glm_vec3_add(res_force, pairwise_force, res_force);
+    }
+
+    glm_vec3_copy(res_force, dest_force);
+}
+// uknow
+static void get_viscosity_force_at_particle_partitioned(fluid_sim_parameters* sim_params, int particle_idx, vec3 dest_force){
+    vec3 res_viscosity_force;
+    glm_vec3_zero(res_viscosity_force);
+
+    int needed_cells[27] = {-1, -1, -1, -1, -1, -1, -1, -1, -1,
+                            -1, -1, -1, -1, -1, -1, -1, -1, -1,
+                            -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    get_needed_cells_from_pos(sim_params, sim_params->positions[particle_idx], needed_cells);
+
+    for (int i = 0; i < 27; i += 1){
+        vec3 viscosity_at_cell;
+        glm_vec3_zero(viscosity_at_cell);
+
+        if (needed_cells[i] != -1){
+            get_viscosity_force_at_particle_at_cell(sim_params, particle_idx, needed_cells[i], viscosity_at_cell);
+            glm_vec3_add(viscosity_at_cell, res_viscosity_force, res_viscosity_force);
+        }
+    }
+
+    glm_vec3_copy(res_viscosity_force, dest_force);
 }
 
 //                                               SETUP FUNCTIONS
@@ -1250,10 +1394,16 @@ void one_sim_step_partitioned(fluid_sim_parameters* sim_params){
             glm_vec3_zero(total_force);
             glm_vec3_zero(accel);
 
-            // CALCULATE PRESSURE FORCE
+            // APPLY PRESSURE FORCE
             vec3 pressure_force;
             get_pressure_force_simple_at_particle_partitioned(sim_params, i, pressure_force);
-            glm_vec3_add(pressure_force, total_force, total_force);            
+            glm_vec3_add(pressure_force, total_force, total_force);     
+            
+            // APPLY VISCOSITY FORCE
+            vec3 viscosity_force;
+            get_viscosity_force_at_particle_partitioned(sim_params, i, viscosity_force);
+            glm_vec3_add(viscosity_force, total_force, total_force);
+            
             // APPLY GRAVITY FORCE
             vec3 grav_force;
             glm_vec3_scale(y_axis, -sim_params->grav_scale * sim_params->particle_mass, grav_force);

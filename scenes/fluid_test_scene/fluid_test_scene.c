@@ -69,6 +69,7 @@ fluid_sim_parameters fluid_sim_params_1 = {
     .stiffness_k = 30,
     .stiffness_gamma = 3.0,
     .reference_density = 0.05,
+    .viscosity = 0.1,
     .air_drag = 0.005
 };
 fluid_render_paramters fluid_render_params_1 = {
@@ -92,7 +93,7 @@ fluid_sim_parameters fluid_sim_params_2 = {
     .n_grid_cells_total = 1000, // doesn't need to be hand stated
 
     // SPAWN BOX
-    .spawn_box_pos = {25, 5, 0},
+    .spawn_box_pos = {25, -7, 0},
     .spawn_box_dims = {20, 5, 20},//{40, 10, 5},
     
     .positions_setup_mode = 0,
@@ -111,7 +112,8 @@ fluid_sim_parameters fluid_sim_params_2 = {
     .stiffness_k = 30,
     .stiffness_gamma = 3.0,
     .reference_density = 0.05,
-    .air_drag = 0.1
+    .viscosity = 0.2,
+    .air_drag = 0.05
 };
 fluid_render_paramters fluid_render_params_2 = {
     .render_radius = 0.5
@@ -169,6 +171,7 @@ void fluid_test_scene_setup(GLFWwindow* window){
     glm_vec3_copy(fluid_sim_params_2.bound_pos, t_pos);
     glm_vec3_copy(fluid_sim_params_2.bound_dims, t_dims);
     t_pos[1] -= 0.5 * fluid_sim_params_2.bound_dims[1];
+    t_pos[1] -= 20;
     ground_terrain = new_terrain_from_heightmap(&ground_h_map, t_pos, t_dims);
     // ground mesh
     heightmap* h = ground_terrain.h_map;
