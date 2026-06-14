@@ -1,93 +1,20 @@
-# 📦 My Package
 
-(add your badges here)
-
-> *Your documentation is a direct reflection of your software, so hold it to the same standards.*
 
 
 ## 🌟 Highlights
 
-- Some functionality made easy!
-- This problem handled
-- etc.
+- Fluid simulation through a Smoothed Particle Dynamics Approach
+- Spatial partitionning
+- CPU and GPU implementations
+- Fluid/Ground collisions and erosion
+- Visualization using OpenGL
 
 
 ## ℹ️ Overview
 
-A paragraph explaining your work, who you are, and why you made it.
+This project was developed in the context of the french Classes Préparatoires' TIPE presentation, with the yearly theme being *Cycles, boucles* (Cycles, loops). 
+In its current state, the program can simulate fluids and their effect on ground through erosion. There are three different implementations inside the code. One on the *CPU*,
+with no real algorithmic regard for performance (in O(n_particles²)), a second CPU-side implementation, this time featuring *spatial grid partitioning*, and a third one 
+making use of *compute shaders* on the *GPU* (while keeping the partitioning).
 
-
-### ✍️ Authors
-
-Mention who you are and link to your GitHub or organization's website.
-
-
-## 🚀 Usage
-
-*Show off what your software looks like in action! Try to limit it to one-liners if possible and don't delve into API specifics.*
-
-```py
->>> import mypackage
->>> mypackage.do_stuff()
-'Oh yeah!'
-```
-
-
-## ⬇️ Installation
-
-Simple, understandable installation instructions!
-
-```bash
-pip install my-package
-```
-
-And be sure to specify any other minimum requirements like Python versions or operating systems.
-
-*You may be inclined to add development instructions here, don't.*
-
-
-## 💭 Feedback and Contributing
-
-Add a link to the Discussions tab in your repo and invite users to open issues for bugs/feature requests.
-
-This is also a great place to invite others to contribute in any ways that make sense for your project. Point people to your DEVELOPMENT and/or CONTRIBUTING guides if you have them.
-📦 My Package
-
-(add your badges here)
-
-    Your documentation is a direct reflection of your software, so hold it to the same standards.
-
-🌟 Highlights
-
-    Some functionality made easy!
-    This problem handled
-    etc.
-
-ℹ️ Overview
-
-A paragraph explaining your work, who you are, and why you made it.
-✍️ Authors
-
-Mention who you are and link to your GitHub or organization's website.
-🚀 Usage
-
-Show off what your software looks like in action! Try to limit it to one-liners if possible and don't delve into API specifics.
-
->>> import mypackage
->>> mypackage.do_stuff()
-'Oh yeah!'
-
-⬇️ Installation
-
-Simple, understandable installation instructions!
-
-pip install my-package
-
-And be sure to specify any other minimum requirements like Python versions or operating systems.
-
-You may be inclined to add development instructions here, don't.
-💭 Feedback and Contributing
-
-Add a link to the Discussions tab in your repo and invite users to open issues for bugs/feature requests.
-
-This is also a great place to invite others to contribute in any ways that make sense for your project. Point people to your DEVELOPMENT and/or CONTRIBUTING guides if you have them.
+## 🚀 In action
