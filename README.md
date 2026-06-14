@@ -24,9 +24,16 @@ making use of **compute shaders** on the **GPU** (while keeping the partitioning
 All the graphics are rendered using th OpenGL pipeline.
 
 ## 🚀 In action
-<img width="727" height="465" alt="Screenshot From 2026-06-04 02-32-44" src="https://github.com/user-attachments/assets/37c8a740-3d87-4cb2-a091-2e5c33130b91" />
-<img width="740" height="710" alt="Screenshot From 2026-06-04 02-36-46" src="https://github.com/user-attachments/assets/40533b9a-831c-4a5b-aff5-86aacf2df71b" />
-<img width="686" height="573" alt="Screenshot From 2026-06-08 09-53-41" src="https://github.com/user-attachments/assets/27d4085f-a8e7-4317-bde6-6215ca3d197b" />
-<img width="686" height="573" alt="Screenshot From 2026-06-08 09-53-59" src="https://github.com/user-attachments/assets/8116d5aa-707f-4254-87f3-86f0f9bdae9b" />
-<img width="686" height="573" alt="Screenshot From 2026-06-08 09-54-13" src="https://github.com/user-attachments/assets/e53cecf9-d8c0-425a-8e2a-d250e080ac80" />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/37c8a740-3d87-4cb2-a091-2e5c33130b91" width="360">
+</p>
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/40533b9a-831c-4a5b-aff5-86aacf2df71b" width="370">
+</p>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/27d4085f-a8e7-4317-bde6-6215ca3d197b" width="220">
+  <img src="https://github.com/user-attachments/assets/8116d5aa-707f-4254-87f3-86f0f9bdae9b" width="220">
+  <img src="https://github.com/user-attachments/assets/e53cecf9-d8c0-425a-8e2a-d250e080ac80" width="220">
+</p>
