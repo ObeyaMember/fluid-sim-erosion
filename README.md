@@ -1,4 +1,4 @@
-<img width="727" height="465" alt="Screenshot From 2026-06-04 02-32-44" src="https://github.com/user-attachments/assets/37c8a740-3d87-4cb2-a091-2e5c33130b91" />
+
 
 
 
@@ -22,3 +22,5 @@ making use of **compute shaders** on the **GPU** (while keeping the partitioning
 All the graphics arerendered using th OpenGL pipeline.
 
 ## 🚀 In action
+<img width="727" height="465" alt="Screenshot From 2026-06-04 02-32-44" src="https://github.com/user-attachments/assets/37c8a740-3d87-4cb2-a091-2e5c33130b91" />
+<img width="740" height="710" alt="Screenshot From 2026-06-04 02-36-46" src="https://github.com/user-attachments/assets/40533b9a-831c-4a5b-aff5-86aacf2df71b" />
