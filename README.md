@@ -24,7 +24,7 @@ making use of **compute shaders** on the **GPU** (while keeping the partitioning
 All the graphics are rendered using th OpenGL pipeline.
 
 ## 🚀 In action
-<div style="width:20%; margin: auto;">
+<div style="width:10%; margin: auto;">
 <img width="727" height="465" alt="Screenshot From 2026-06-04 02-32-44" src="https://github.com/user-attachments/assets/37c8a740-3d87-4cb2-a091-2e5c33130b91" />
 <img width="740" height="710" alt="Screenshot From 2026-06-04 02-36-46" src="https://github.com/user-attachments/assets/40533b9a-831c-4a5b-aff5-86aacf2df71b" />
 <img width="686" height="573" alt="Screenshot From 2026-06-08 09-53-41" src="https://github.com/user-attachments/assets/27d4085f-a8e7-4317-bde6-6215ca3d197b" />
