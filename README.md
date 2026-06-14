@@ -12,9 +12,12 @@
 
 ## ℹ️ Overview
 
-This project was developed in the context of the french Classes Préparatoires' TIPE presentation, with the yearly theme being _Cycles, boucles_ (Cycles, loops). 
-In its current state, the program can simulate fluids and their effect on ground through erosion. There are three different implementations inside the code. One on the *CPU*,
-with no real algorithmic regard for performance (in O(n_particles²)), a second CPU-side implementation, this time featuring *spatial grid partitioning*, and a third one 
-making use of *compute shaders* on the *GPU* (while keeping the partitioning).
+This C project was developed in the context of the french Classes Préparatoires' TIPE presentation, with the yearly theme being **Cycles, boucles** (Cycles, loops). 
+
+In its current state, the program can simulate fluids and their effect on ground through erosion. There are three different implementations inside the code. One on the **CPU**,
+with no real algorithmic regard for performance (in O(n_particles²)), a second CPU-side implementation, this time featuring **spatial grid partitioning**, and a third one 
+making use of **compute shaders** on the **GPU** (while keeping the partitioning).
+
+All the graphics arerendered using th OpenGL pipeline.
 
 ## 🚀 In action
